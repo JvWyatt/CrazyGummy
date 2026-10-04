@@ -1,0 +1,13 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/KnifeData.gd" id="1_knife"]
+
+[resource]
+script = ExtResource("1_knife")
+id = "weapon_box_cutter"
+name = "Cúter"
+description = "Una hoja fina y sorprendentemente eficaz."
+damage = 25.0
+unlock_order = 5
+price = 16638
+icon = "🪒"

@@ -1,0 +1,10 @@
+[gd_resource type="BoxMesh" load_steps=2 format=3]
+
+[sub_resource type="StandardMaterial3D" id="Material_fragment"]
+shading_mode = 0
+transparency = 1
+vertex_color_use_as_albedo = true
+
+[resource]
+material = SubResource("Material_fragment")
+size = Vector3(1, 1, 1)

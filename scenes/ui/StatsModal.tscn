@@ -1,0 +1,74 @@
+[gd_scene format=3 uid="uid://dmk8730pa16c1"]
+
+[ext_resource type="Theme" uid="uid://cw00u1brw0yxi" path="res://themes/ui01_theme.tres" id="1_qhkoq"]
+[ext_resource type="Script" uid="uid://ddxow6hhyb6ej" path="res://scripts/ui/StatsModal.gd" id="1_stm"]
+[ext_resource type="Script" uid="uid://b5kdfot8rrbtk" path="res://scripts/ui/TouchScrollContainer.gd" id="2_touch_scroll"]
+[ext_resource type="Script" path="res://scripts/ui/ContentSizedModal.gd" id="fit"]
+
+[node name="StatsModal" type="Control" unique_id=1849498826]
+z_index = 30
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_qhkoq")
+script = ExtResource("1_stm")
+
+[node name="Dimmer" type="ColorRect" parent="." unique_id=716050345]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="Panel" type="PanelContainer" parent="." unique_id=1574241307]
+layout_mode = 1
+anchor_left = 0.05
+anchor_top = 0.06
+anchor_right = 0.95
+anchor_bottom = 0.94
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"ModalPanel"
+script = ExtResource("fit")
+
+[node name="VBox" type="VBoxContainer" parent="Panel" unique_id=2033879210]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="HeaderHBox" type="HBoxContainer" parent="Panel/VBox" unique_id=1196042814]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="Panel/VBox/HeaderHBox" unique_id=1453897824]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"TitleLabel"
+text = "📊 Estadísticas"
+
+[node name="CloseButton" type="Button" parent="Panel/VBox/HeaderHBox" unique_id=1526022514]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+text = "✖"
+
+[node name="HSeparator" type="HSeparator" parent="Panel/VBox" unique_id=1121249749]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Panel/VBox" unique_id=1493560112]
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("2_touch_scroll")
+
+[node name="StatsVBox" type="VBoxContainer" parent="Panel/VBox/ScrollContainer" unique_id=1876914469]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="ContinueButton" type="Button" parent="Panel/VBox" unique_id=171541792]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+text = "CERRAR"

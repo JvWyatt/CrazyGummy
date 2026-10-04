@@ -1,0 +1,12 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/RunUpgradeData.gd" id="1_run"]
+
+[resource]
+script = ExtResource("1_run")
+id = "damage"
+name = "Afilado de Hoja"
+desc = "+10% daño"
+base_cost = 5
+cost_mult = 1.5
+icon = "💥"

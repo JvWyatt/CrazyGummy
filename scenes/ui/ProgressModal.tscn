@@ -1,0 +1,98 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Theme" uid="uid://cw00u1brw0yxi" path="res://themes/ui01_theme.tres" id="1_theme"]
+[ext_resource type="Script" path="res://scripts/ui/ProgressModal.gd" id="1_progress"]
+[ext_resource type="Script" path="res://scripts/ui/ContentSizedModal.gd" id="fit"]
+[ext_resource type="Script" path="res://scripts/ui/TouchScrollContainer.gd" id="2_touch_scroll"]
+
+[node name="ProgressModal" type="Control"]
+theme = ExtResource("1_theme")
+z_index = 30
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_progress")
+
+[node name="Dimmer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_left = 0.05
+anchor_top = 0.10
+anchor_right = 0.95
+anchor_bottom = 0.90
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = "ModalPanel"
+script = ExtResource("fit")
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="HeaderHBox" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="Panel/VBox/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"TitleLabel"
+text = "PROGRESO"
+
+[node name="CloseButton" type="Button" parent="Panel/VBox/HeaderHBox"]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+text = "✖"
+
+[node name="HSeparator" type="HSeparator" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="MilestonePanel" type="PanelContainer" parent="Panel/VBox"]
+layout_mode = 2
+theme_type_variation = &"SummaryPanel"
+
+[node name="Content" type="VBoxContainer" parent="Panel/VBox/MilestonePanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Caption" type="Label" parent="Panel/VBox/MilestonePanel/Content"]
+layout_mode = 2
+theme_type_variation = &"SubtitleLabel"
+text = "Completa 100 días"
+autowrap_mode = 3
+
+[node name="BestLabel" type="Label" parent="Panel/VBox/MilestonePanel/Content"]
+layout_mode = 2
+theme_type_variation = &"ValueLabel"
+text = "0 / 100"
+
+[node name="ProgressBar" type="ProgressBar" parent="Panel/VBox/MilestonePanel/Content"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+show_percentage = false
+
+[node name="Hint" type="Label" parent="Panel/VBox/MilestonePanel/Content"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "Cada negocio te acerca a tu próximo récord."
+autowrap_mode = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Panel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("2_touch_scroll")
+
+[node name="ProgressVBox" type="VBoxContainer" parent="Panel/VBox/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10

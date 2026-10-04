@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://c7m5p23s78va1"]
+
+[ext_resource type="Script" uid="uid://cehpquayrk8bl" path="res://scripts/game/FruitSpawner.gd" id="1_sp"]
+
+[node name="FruitSpawner" type="Node2D"]
+script = ExtResource("1_sp")
+play_bounds = Rect2(30, 240, 700, 900)

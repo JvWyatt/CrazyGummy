@@ -1,0 +1,19 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/FruitData.gd" id="1_fruit"]
+
+[resource]
+script = ExtResource("1_fruit")
+id = "papaya"
+display_name = "Papaya"
+icon_emoji = "🥭"
+max_hp = 84106.0
+min_reward = 4096
+max_reward = 8192
+unlock_order = 14
+price = 9731
+base_color = Color(0.95, 0.45, 0.12, 1.0)
+inner_color = Color(1.0, 0.62, 0.25, 1.0)
+accent_color = Color(0.25, 0.65, 0.15, 1.0)
+radius = 26.0
+shape_type = "papaya"

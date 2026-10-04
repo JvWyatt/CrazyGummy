@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+[ext_resource type="Shader" path="res://assets/crazy_gummy/materials/gummy/gummy.gdshader" id="1"]
+[resource]
+resource_name = "19 · Ámbar con vetas"
+shader = ExtResource("1")
+shader_parameter/primary_color = Color(1, 0.42, 0.035, 1)
+shader_parameter/secondary_color = Color(1, 0.92, 0.31, 1)
+shader_parameter/pattern_mode = 3
+shader_parameter/pattern_scale = 22.0
+shader_parameter/pattern_mix = 0.8
+shader_parameter/opacity = 0.87
+shader_parameter/surface_roughness = 0.1
+shader_parameter/internal_glow = 0.14

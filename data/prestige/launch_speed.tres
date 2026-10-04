@@ -1,0 +1,11 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/PrestigeUpgradeData.gd" id="1_prestige"]
+
+[resource]
+script = ExtResource("1_prestige")
+id = "launch_speed"
+name = "Ritmo Veloz"
+desc = "+25% Frecuencia de Lanzamiento"
+cost = 5
+icon = "🚀"

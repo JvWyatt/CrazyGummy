@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/game/Obstacle.gd" id="1_obs"]
+[ext_resource type="Script" path="res://scripts/game/Ballistic.gd" id="2_bal"]
+
+[node name="Obstacle" type="Area2D"]
+z_index = 5
+visible = false
+collision_mask = 0
+script = ExtResource("1_obs")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+
+[node name="Ballistic" type="Node" parent="."]
+script = ExtResource("2_bal")

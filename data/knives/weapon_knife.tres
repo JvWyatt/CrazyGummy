@@ -1,0 +1,13 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/KnifeData.gd" id="1_knife"]
+
+[resource]
+script = ExtResource("1_knife")
+id = "weapon_knife"
+name = "Cuchillo"
+description = "Un filo fiable para el trabajo diario."
+damage = 35.0
+unlock_order = 6
+price = 91506
+icon = "🔪"

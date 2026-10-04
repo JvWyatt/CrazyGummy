@@ -1,0 +1,79 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Theme" uid="uid://cw00u1brw0yxi" path="res://themes/ui01_theme.tres" id="1_theme"]
+[ext_resource type="Script" path="res://scripts/ui/CreditsModal.gd" id="1_credits"]
+[ext_resource type="Script" path="res://scripts/ui/ContentSizedModal.gd" id="fit"]
+
+[node name="CreditsModal" type="Control"]
+theme = ExtResource("1_theme")
+z_index = 35
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_credits")
+
+[node name="Dimmer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_left = 0.06
+anchor_top = 0.12
+anchor_right = 0.94
+anchor_bottom = 0.88
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = "ModalPanel"
+script = ExtResource("fit")
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="TitleLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+text = "🎬 ¡CRÉDITOS!"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_type_variation = &"SubtitleLabel"
+text = "¡Completaste los 100 días del juego!"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="QuotaLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_type_variation = &"Body"
+text = "Cuota del día 100: $1000.0M"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="CreditAuthorLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_type_variation = &"Subtitle"
+text = "👨‍💻 Desarrollado completamente por JvWyatt"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="ContinueButton" type="Button" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_type_variation = "PrimaryButton"
+text = "▶ CONTINUAR (NUEVOS RÉCORDS)"
+
+[node name="ExitButton" type="Button" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_type_variation = "DangerButton"
+text = "🚪 SALIR AL MENÚ"

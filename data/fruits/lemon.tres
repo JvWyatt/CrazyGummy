@@ -1,0 +1,19 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/FruitData.gd" id="1_fruit"]
+
+[resource]
+script = ExtResource("1_fruit")
+id = "lemon"
+display_name = "Limón"
+icon_emoji = "🍋"
+max_hp = 6454.0
+min_reward = 256
+max_reward = 512
+unlock_order = 10
+price = 1922
+base_color = Color(0.95, 0.82, 0.08, 1.0)
+inner_color = Color(1.0, 0.95, 0.4, 1.0)
+accent_color = Color(0.35, 0.65, 0.15, 1.0)
+radius = 19.0
+shape_type = "lemon"

@@ -1,0 +1,207 @@
+[gd_scene format=3 uid="uid://dg03k36pm1y8a"]
+
+[ext_resource type="Theme" uid="uid://cw00u1brw0yxi" path="res://themes/ui01_theme.tres" id="1_clp4r"]
+[ext_resource type="Script" uid="uid://bdj3lmpeoeea5" path="res://scripts/ui/MainMenu.gd" id="1_mm"]
+[ext_resource type="PackedScene" path="res://scenes/ui/SettingsSection.tscn" id="2_ss"]
+[ext_resource type="PackedScene" path="res://scenes/ui/ConfirmDialog.tscn" id="3_cd"]
+[ext_resource type="Texture2D" uid="uid://ccw2bv8oohapn" path="res://assets/ui/icons/prestige.png" id="6_7mi0g"]
+[ext_resource type="Texture2D" uid="uid://drn1mukt17ueg" path="res://assets/ui/icons/progress_book.png" id="7_ee60a"]
+[ext_resource type="Texture2D" uid="uid://cl0ryhmly6nf7" path="res://assets/ui/icons/achievements.png" id="8_qjd48"]
+[ext_resource type="Texture2D" uid="uid://dkcptt6wrtxbw" path="res://assets/ui/icons/Joker.png" id="9_ff4wq"]
+[ext_resource type="Texture2D" uid="uid://cdpail6lhujn8" path="res://assets/ui/icons/settings.png" id="10_nqw28"]
+[ext_resource type="Texture2D" uid="uid://bay06q8cb31ci" path="res://assets/ui/icons/info.png" id="11_7uy2f"]
+[ext_resource type="Texture2D" uid="uid://ts4equqnr1im" path="res://assets/ui/backgrounds/menu_bg.png" id="tex_bg"]
+[ext_resource type="Texture2D" uid="uid://bnf8gub0jg74" path="res://assets/ui/backgrounds/logo.png" id="tex_logo"]
+[ext_resource type="Script" path="res://scripts/ui/ContentSizedModal.gd" id="fit"]
+
+[node name="MainMenu" type="Control" unique_id=78427337]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_clp4r")
+script = ExtResource("1_mm")
+
+[node name="BG" type="TextureRect" parent="." unique_id=553298813]
+mouse_filter = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("tex_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="VersionLabel" type="Label" parent="." unique_id=1908539891]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -150.0
+offset_top = -52.0
+offset_right = -16.0
+offset_bottom = -30.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_type_variation = &"Body"
+text = "v0.017"
+horizontal_alignment = 2
+
+[node name="CenterVBox" type="VBoxContainer" parent="." unique_id=1840560888]
+layout_mode = 1
+anchor_left = 0.08
+anchor_top = 0.06
+anchor_right = 0.92
+anchor_bottom = 0.94
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 28
+alignment = 1
+
+[node name="TitleVBox" type="VBoxContainer" parent="CenterVBox" unique_id=1687227059]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+metadata/_edit_use_anchors_ = true
+
+[node name="Logo" type="TextureRect" parent="CenterVBox/TitleVBox"]
+custom_minimum_size = Vector2(0, 240)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("tex_logo")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TitleLabel" type="Label" parent="CenterVBox/TitleVBox" unique_id=1962924208]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+text = "Crazy Fruit"
+horizontal_alignment = 1
+
+[node name="GoalLabel" type="Label" parent="CenterVBox/TitleVBox" unique_id=1980242948]
+layout_mode = 2
+theme_type_variation = &"SubtitleLabel"
+text = "🎯 100 días, ¿eso está pelado?"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="ButtonsVBox" type="VBoxContainer" parent="CenterVBox" unique_id=632926681]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="PlayButton" type="Button" parent="CenterVBox/ButtonsVBox" unique_id=1658374002]
+custom_minimum_size = Vector2(0, 88)
+layout_mode = 2
+theme_type_variation = &"PrimaryButton"
+text = "JUGAR"
+
+[node name="NavigationGrid" type="GridContainer" parent="CenterVBox/ButtonsVBox"]
+layout_mode = 2
+columns = 2
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 16
+
+[node name="PrestigeShopButton" type="Button" parent="CenterVBox/ButtonsVBox/NavigationGrid" unique_id=200775943]
+custom_minimum_size = Vector2(0, 88)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "PRESTIGIO"
+icon = ExtResource("6_7mi0g")
+expand_icon = true
+
+[node name="ProgressButton" type="Button" parent="CenterVBox/ButtonsVBox/NavigationGrid" unique_id=921980326]
+custom_minimum_size = Vector2(0, 88)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "PROGRESO"
+icon = ExtResource("7_ee60a")
+expand_icon = true
+
+[node name="AchievementsButton" type="Button" parent="CenterVBox/ButtonsVBox/NavigationGrid" unique_id=2010979216]
+custom_minimum_size = Vector2(0, 88)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "LOGROS"
+icon = ExtResource("8_qjd48")
+expand_icon = true
+
+[node name="CardsButton" type="Button" parent="CenterVBox/ButtonsVBox/NavigationGrid" unique_id=1043777907]
+custom_minimum_size = Vector2(0, 88)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "COMODINES"
+icon = ExtResource("9_ff4wq")
+expand_icon = true
+
+[node name="SettingsButton" type="Button" parent="CenterVBox/ButtonsVBox" unique_id=211925383]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+text = " AJUSTES"
+icon = ExtResource("10_nqw28")
+expand_icon = true
+
+[node name="SettingsPanel" type="Control" parent="." unique_id=2092562350]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Scrim" type="ColorRect" parent="SettingsPanel" unique_id=945550984]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="SettingsCard" type="PanelContainer" parent="SettingsPanel" unique_id=1243044022]
+layout_mode = 1
+anchor_left = 0.08
+anchor_top = 0.5
+anchor_right = 0.92
+anchor_bottom = 0.5
+offset_top = -280.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"ModalPanel"
+script = ExtResource("fit")
+
+[node name="VBox" type="VBoxContainer" parent="SettingsPanel/SettingsCard" unique_id=398066142]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TitleLabel" type="Label" parent="SettingsPanel/SettingsCard/VBox" unique_id=154346056]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+text = "AJUSTES"
+horizontal_alignment = 1
+
+[node name="SettingsSection" parent="SettingsPanel/SettingsCard/VBox" unique_id=1879334553 instance=ExtResource("2_ss")]
+layout_mode = 2
+
+[node name="ResetButton" type="Button" parent="SettingsPanel/SettingsCard/VBox" unique_id=2124653026]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_type_variation = &"DangerButton"
+text = "REINICIAR PROGRESO"
+icon = ExtResource("11_7uy2f")
+expand_icon = true
+
+[node name="BackButton" type="Button" parent="SettingsPanel/SettingsCard/VBox" unique_id=333504889]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+text = "← VOLVER"
+
+[node name="ResetConfirmDialog" parent="SettingsPanel" unique_id=1353792082 instance=ExtResource("3_cd")]
+layout_mode = 1

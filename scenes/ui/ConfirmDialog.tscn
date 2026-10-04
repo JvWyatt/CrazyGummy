@@ -1,0 +1,72 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Theme" uid="uid://cw00u1brw0yxi" path="res://themes/ui01_theme.tres" id="1_theme"]
+[ext_resource type="Script" path="res://scripts/ui/ConfirmDialog.gd" id="1_cd"]
+[ext_resource type="Script" path="res://scripts/ui/ContentSizedModal.gd" id="fit"]
+
+[node name="ConfirmDialog" type="Control"]
+theme = ExtResource("1_theme")
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_cd")
+
+[node name="Scrim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="Card" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_left = 0.06
+anchor_top = 0.5
+anchor_right = 0.94
+anchor_bottom = 0.5
+offset_top = -150.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = "ModalPanel"
+script = ExtResource("fit")
+
+[node name="VBox" type="VBoxContainer" parent="Card"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="TitleLabel" type="Label" parent="Card/VBox"]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+text = "CONFIRMAR"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="MessageLabel" type="Label" parent="Card/VBox"]
+layout_mode = 2
+theme_type_variation = &"Body"
+text = "¿Estás seguro?"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="ButtonsHBox" type="VBoxContainer" parent="Card/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="CancelButton" type="Button" parent="Card/VBox/ButtonsHBox"]
+custom_minimum_size = Vector2(180, 52)
+layout_mode = 2
+text = "CANCELAR"
+
+[node name="OkButton" type="Button" parent="Card/VBox/ButtonsHBox"]
+custom_minimum_size = Vector2(180, 54)
+layout_mode = 2
+theme_type_variation = "DangerButton"
+text = "ACEPTAR"

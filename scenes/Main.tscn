@@ -1,0 +1,96 @@
+[gd_scene format=3 uid="uid://bv83m2ak4a23p"]
+
+[ext_resource type="Script" uid="uid://ctmisjsdikrjn" path="res://scripts/Main.gd" id="1_main"]
+[ext_resource type="PackedScene" uid="uid://dg03k36pm1y8a" path="res://scenes/ui/MainMenu.tscn" id="2_menu"]
+[ext_resource type="PackedScene" uid="uid://c7m5p23s78va1" path="res://scenes/game/FruitSpawner.tscn" id="3_spawner"]
+[ext_resource type="PackedScene" uid="uid://bv83nas24w8q1" path="res://scenes/game/SwipeController.tscn" id="4_swipe"]
+[ext_resource type="PackedScene" uid="uid://dm28ka4n2e7k0" path="res://scenes/ui/HUD.tscn" id="5_hud"]
+[ext_resource type="PackedScene" uid="uid://df72mk4w870p1" path="res://scenes/ui/RunUpgradeModal.tscn" id="6_run_up"]
+[ext_resource type="PackedScene" uid="uid://dmk8730pa16c1" path="res://scenes/ui/StatsModal.tscn" id="7_stats_mod"]
+[ext_resource type="PackedScene" uid="uid://cx62m20g3n4a1" path="res://scenes/ui/CardSelectionModal.tscn" id="9_card_sel"]
+[ext_resource type="PackedScene" uid="uid://b00g72yq15x3a" path="res://scenes/ui/ResultsModal.tscn" id="10_results"]
+[ext_resource type="PackedScene" uid="uid://bwm82l5k4qaa1" path="res://scenes/ui/PrestigeShopModal.tscn" id="12_prestige_shop"]
+[ext_resource type="PackedScene" path="res://scenes/ui/ProgressModal.tscn" id="13_progress"]
+[ext_resource type="PackedScene" path="res://scenes/ui/CardsModal.tscn" id="14_cards"]
+[ext_resource type="PackedScene" path="res://scenes/ui/CreditsModal.tscn" id="15_credits"]
+[ext_resource type="PackedScene" path="res://scenes/ui/AchievementsModal.tscn" id="16_ach"]
+[ext_resource type="Script" path="res://scripts/ui/SafeAreaLayout.gd" id="17_safe"]
+
+[node name="Main" type="Node" unique_id=1186560382]
+script = ExtResource("1_main")
+
+[node name="Background" type="ColorRect" parent="." unique_id=1798823514]
+z_index = -2
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.055, 0.065, 0.11, 1)
+
+[node name="GoalCelebration" type="Node2D" parent="."]
+z_index = -1
+
+[node name="MainMenu" parent="." unique_id=143912474 instance=ExtResource("2_menu")]
+
+[node name="GameWorld" type="Node2D" parent="." unique_id=2110451518]
+
+[node name="FruitSpawner" parent="GameWorld" unique_id=727793212 instance=ExtResource("3_spawner")]
+play_bounds = Rect2(10, 240, 700, 900)
+
+[node name="SwipeController" parent="GameWorld" unique_id=2106919530 instance=ExtResource("4_swipe")]
+
+[node name="HUDLayer" type="CanvasLayer" parent="GameWorld" unique_id=14869382]
+
+[node name="HUD" parent="GameWorld/HUDLayer" unique_id=239276739 instance=ExtResource("5_hud")]
+
+[node name="Fruit3DLayer" type="SubViewportContainer" parent="." unique_id=2119602039]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+stretch = true
+
+[node name="Viewport" type="SubViewport" parent="Fruit3DLayer" unique_id=306792396]
+own_world_3d = true
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(720, 1280)
+render_target_update_mode = 4
+
+[node name="Modals" type="CanvasLayer" parent="." unique_id=835756969]
+layer = 50
+
+[node name="RunUpgradeModal" parent="Modals" unique_id=1480588190 instance=ExtResource("6_run_up")]
+visible = false
+
+[node name="StatsModal" parent="Modals" unique_id=272689735 instance=ExtResource("7_stats_mod")]
+visible = false
+
+[node name="CardSelectionModal" parent="Modals" unique_id=987121455 instance=ExtResource("9_card_sel")]
+visible = false
+
+[node name="ResultsModal" parent="Modals" unique_id=1703318442 instance=ExtResource("10_results")]
+visible = false
+
+[node name="PrestigeShopModal" parent="Modals" unique_id=367637945 instance=ExtResource("12_prestige_shop")]
+visible = false
+
+[node name="ProgressModal" parent="Modals" unique_id=1782909048 instance=ExtResource("13_progress")]
+visible = false
+
+[node name="CardsModal" parent="Modals" unique_id=873902035 instance=ExtResource("14_cards")]
+visible = false
+
+[node name="CreditsModal" parent="Modals" unique_id=862694109 instance=ExtResource("15_credits")]
+visible = false
+
+[node name="AchievementsModal" parent="Modals" unique_id=480501052 instance=ExtResource("16_ach")]
+visible = false
+
+[node name="SafeAreaLayout" type="Node" parent="."]
+script = ExtResource("17_safe")
+targets = Array[NodePath]([NodePath("../MainMenu/CenterVBox"), NodePath("../MainMenu/VersionLabel"), NodePath("../MainMenu/SettingsPanel/SettingsCard"), NodePath("../MainMenu/SettingsPanel/ResetConfirmDialog/Card"), NodePath("../GameWorld/HUDLayer/HUD/TopContainer"), NodePath("../GameWorld/HUDLayer/HUD/BottomContainer"), NodePath("../GameWorld/HUDLayer/HUD/ToastLayer/AchToast"), NodePath("../GameWorld/HUDLayer/HUD/PausePanel/Card"), NodePath("../GameWorld/HUDLayer/HUD/PauseConfirmDialog/Card"), NodePath("../Modals/RunUpgradeModal/Panel"), NodePath("../Modals/StatsModal/Panel"), NodePath("../Modals/CardSelectionModal/Panel"), NodePath("../Modals/ResultsModal/Panel"), NodePath("../Modals/PrestigeShopModal/Panel"), NodePath("../Modals/ProgressModal/Panel"), NodePath("../Modals/CardsModal/Panel"), NodePath("../Modals/CreditsModal/Panel"), NodePath("../Modals/AchievementsModal/Panel")])

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/FruitData.gd" id="1_fruit"]
+
+[resource]
+script = ExtResource("1_fruit")
+id = "orange"
+display_name = "Naranja"
+icon_emoji = "🍊"
+max_hp = 261.0
+min_reward = 8
+max_reward = 16
+unlock_order = 5
+price = 253
+base_color = Color(0.95, 0.45, 0.08, 1.0)
+inner_color = Color(1.0, 0.75, 0.25, 1.0)
+accent_color = Color(0.25, 0.7, 0.2, 1.0)
+radius = 22.0
+shape_type = "orange"

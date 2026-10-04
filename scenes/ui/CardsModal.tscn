@@ -1,0 +1,95 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Theme" uid="uid://cw00u1brw0yxi" path="res://themes/ui01_theme.tres" id="1_theme"]
+[ext_resource type="Script" path="res://scripts/ui/CardsModal.gd" id="1_cards"]
+[ext_resource type="Script" path="res://scripts/ui/TouchScrollContainer.gd" id="2_touch_scroll"]
+[ext_resource type="Script" path="res://scripts/ui/ResponsiveGrid.gd" id="3_grid"]
+[ext_resource type="Script" path="res://scripts/ui/ContentSizedModal.gd" id="fit"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/CardTooltip.tscn" id="tooltip"]
+
+[node name="CardsModal" type="Control"]
+theme = ExtResource("1_theme")
+z_index = 40
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_cards")
+
+[node name="Dimmer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_left = 0.05
+anchor_top = 0.06
+anchor_right = 0.95
+anchor_bottom = 0.94
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = "ModalPanel"
+script = ExtResource("fit")
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="HeaderHBox" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="Panel/VBox/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"TitleLabel"
+text = "🃏 Comodines"
+autowrap_mode = 3
+
+[node name="CloseButton" type="Button" parent="Panel/VBox/HeaderHBox"]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+text = "✖"
+
+[node name="HSeparator" type="HSeparator" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="RarityLegend" type="RichTextLabel" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_type_variation = &"BodyRichText"
+fit_content = true
+bbcode_enabled = true
+scroll_active = false
+
+[node name="EmptyLabel" type="Label" parent="Panel/VBox"]
+visible = false
+layout_mode = 2
+theme_type_variation = &"Body"
+text = "Todavía no hay comodines para mostrar."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Panel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("2_touch_scroll")
+
+[node name="CardsGrid" type="Container" parent="Panel/VBox/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("3_grid")
+min_card_width = 144.0
+max_columns = 3
+center_orphan = true
+
+[node name="CardTooltip" parent="." instance=ExtResource("tooltip")]
+visible = false
+layout_mode = 0
+z_index = 10

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/FruitData.gd" id="1_fruit"]
+
+[resource]
+script = ExtResource("1_fruit")
+id = "quince"
+display_name = "Membrillo"
+icon_emoji = "🍐"
+max_hp = 2082547.0
+min_reward = 131072
+max_reward = 262144
+unlock_order = 19
+price = 73895
+base_color = Color(0.8, 0.72, 0.16, 1.0)
+inner_color = Color(1.0, 0.88, 0.35, 1.0)
+accent_color = Color(0.25, 0.55, 0.15, 1.0)
+radius = 24.0
+shape_type = "quince"

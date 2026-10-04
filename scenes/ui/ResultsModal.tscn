@@ -1,0 +1,102 @@
+[gd_scene format=3 uid="uid://b00g72yq15x3a"]
+
+[ext_resource type="Theme" uid="uid://cw00u1brw0yxi" path="res://themes/ui01_theme.tres" id="1_dt7be"]
+[ext_resource type="Script" uid="uid://vh4ak0h3hjok" path="res://scripts/ui/ResultsModal.gd" id="1_rm"]
+[ext_resource type="Script" path="res://scripts/ui/ContentSizedModal.gd" id="fit"]
+
+[node name="ResultsModal" type="Control" unique_id=1882880049]
+z_index = 40
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_dt7be")
+script = ExtResource("1_rm")
+
+[node name="Dimmer" type="ColorRect" parent="." unique_id=1220494925]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="Panel" type="PanelContainer" parent="." unique_id=1743616168]
+layout_mode = 1
+anchor_left = 0.06
+anchor_top = 0.20
+anchor_right = 0.94
+anchor_bottom = 0.80
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"ModalPanel"
+script = ExtResource("fit")
+
+[node name="VBox" type="VBoxContainer" parent="Panel" unique_id=1022258791]
+layout_mode = 2
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="Panel/VBox" unique_id=880750025]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+text = "💀 NEGOCIO TERMINADO"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="HSeparator" type="HSeparator" parent="Panel/VBox" unique_id=737873016]
+layout_mode = 2
+
+[node name="StatsVBox" type="VBoxContainer" parent="Panel/VBox" unique_id=2065828288]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="OrdersLabel" type="Label" parent="Panel/VBox/StatsVBox" unique_id=1048480905]
+layout_mode = 2
+text = "📋 Días completados en el Negocio: 0"
+
+[node name="MoneyLabel" type="Label" parent="Panel/VBox/StatsVBox" unique_id=22937744]
+layout_mode = 2
+text = "💰 Ganancias generadas: $0"
+
+[node name="FruitsLabel" type="Label" parent="Panel/VBox/StatsVBox" unique_id=591356825]
+layout_mode = 2
+text = "🍉 Frutas cortadas: 0"
+
+[node name="JackpotsLabel" type="Label" parent="Panel/VBox/StatsVBox" unique_id=1906522537]
+layout_mode = 2
+text = "⭐ Jackpots conseguidos: 0"
+
+[node name="GoldenLabel" type="Label" parent="Panel/VBox/StatsVBox" unique_id=1781905948]
+layout_mode = 2
+theme_type_variation = &"Body"
+text = "✨ Frutas doradas cortadas: 0"
+
+[node name="PrestigeContainer" type="PanelContainer" parent="Panel/VBox" unique_id=1620532939]
+layout_mode = 2
+theme_type_variation = &"Card"
+
+[node name="VBox" type="VBoxContainer" parent="Panel/VBox/PrestigeContainer" unique_id=357518226]
+layout_mode = 2
+alignment = 1
+
+[node name="HeaderLabel" type="Label" parent="Panel/VBox/PrestigeContainer/VBox" unique_id=1166721963]
+layout_mode = 2
+theme_type_variation = &"Body"
+text = "Reputación Obtenida:"
+horizontal_alignment = 1
+
+[node name="PrestigeEarnedLabel" type="Label" parent="Panel/VBox/PrestigeContainer/VBox" unique_id=315647514]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+text = "+ 0 ⭐"
+horizontal_alignment = 1
+
+[node name="ContinueButton" type="Button" parent="Panel/VBox" unique_id=1420832934]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_type_variation = &"PrimaryButton"
+text = "CONTINUAR"

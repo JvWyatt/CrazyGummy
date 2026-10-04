@@ -1,0 +1,34 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/BalanceData.gd" id="1_balance"]
+
+[resource]
+script = ExtResource("1_balance")
+base_energy_cost = 1.0
+resistance_cost_multiplier = 1.0
+golden_fruit_chance = 0.0
+reward_rebalance_multiplier = 1.0
+critical_damage_multiplier = 1.5
+base_launch_rate = 1.0
+run_launch_bonus_per_level = 0.1
+prestige_launch_bonus_per_level = 0.25
+obstacle_interval_min = 1.0
+obstacle_interval_max = 2.0
+obstacle_resistance_penalty_fraction = 0.1
+base_order_target = 10.0
+order_target_growth = 1.21
+round_time_seconds = 60.0
+win_day = 100
+base_max_energy = 100.0
+run_damage_bonus_per_level = 0.1
+damage_pity_floor = 10.0
+damage_pity_flat_per_level = 1.0
+run_energy_bonus_per_level = 0.1
+run_money_bonus_per_level = 0.1
+run_jackpot_bonus_per_level = 0.00777
+prestige_damage_bonus_per_level = 0.2
+prestige_energy_bonus_per_level = 0.2
+prestige_money_bonus_per_level = 0.2
+prestige_jackpot_bonus_per_level = 0.0777
+base_jackpot_multiplier = 2.0
+prestige_price_growth = 1.5

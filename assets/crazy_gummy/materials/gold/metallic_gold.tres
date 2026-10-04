@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+[ext_resource type="Shader" path="res://assets/crazy_gummy/materials/gold/gold.gdshader" id="1"]
+[resource]
+resource_name = "Especial · Oro metálico opaco"
+shader = ExtResource("1")
+shader_parameter/primary_color = Color(1, 0.64, 0.08, 1)
+shader_parameter/surface_roughness = 0.18
+shader_parameter/reflection_strength = 1.0
+shader_parameter/reflection_fill = 0.3

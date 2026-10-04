@@ -1,0 +1,15 @@
+.godot/
+
+# Cachés y archivos locales de compilación.
+.gradle/
+android/build/
+local.properties
+.DS_Store
+
+# Builds y credenciales locales de firma.
+*.apk
+*.aab
+*.keystore
+*.jks
+.env
+.env.*

@@ -1,0 +1,40 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Theme" path="res://themes/ui01_theme.tres" id="1"]
+[ext_resource type="Script" path="res://scripts/ui/CardTooltip.gd" id="2"]
+
+[sub_resource type="StyleBoxFlat" id="TooltipStyle"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.045, 0.065, 0.10, 0.98)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.30, 0.44, 0.55, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.3)
+
+[node name="CardTooltip" type="PanelContainer"]
+mouse_filter = 2
+theme = ExtResource("1")
+theme_override_styles/panel = SubResource("TooltipStyle")
+script = ExtResource("2")
+
+[node name="Text" type="Label" parent="."]
+custom_minimum_size = Vector2(276, 0)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"Body"
+autowrap_mode = 3
+text = "Descripción del comodín"
+
+[node name="DismissTimer" type="Timer" parent="."]
+wait_time = 3.0
+one_shot = true

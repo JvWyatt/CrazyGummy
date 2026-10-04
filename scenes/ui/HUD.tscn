@@ -1,0 +1,416 @@
+[gd_scene format=3 uid="uid://dm28ka4n2e7k0"]
+
+[ext_resource type="Theme" uid="uid://cw00u1brw0yxi" path="res://themes/ui01_theme.tres" id="1_4ed8p"]
+[ext_resource type="Script" uid="uid://obkbe7bebsws" path="res://scripts/ui/HUD.gd" id="1_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/SettingsSection.tscn" id="2_ss"]
+[ext_resource type="PackedScene" path="res://scenes/ui/ConfirmDialog.tscn" id="3_cd"]
+[ext_resource type="Script" uid="uid://dhnqc1lgixeiw" path="res://scripts/ui/StreakRing.gd" id="5_ring"]
+[ext_resource type="Script" path="res://scripts/ui/ContentSizedModal.gd" id="fit"]
+
+[sub_resource type="StyleBoxFlat" id="SB_ach_toast"]
+content_margin_left = 18.0
+content_margin_top = 14.0
+content_margin_right = 18.0
+content_margin_bottom = 14.0
+bg_color = Color(0.055, 0.073, 0.137, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.78, 0.55, 0.95)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 12
+shadow_offset = Vector2(0, 4)
+
+[node name="HUD" type="Control" unique_id=141023235]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("1_4ed8p")
+script = ExtResource("1_hud")
+
+[node name="TopContainer" type="PanelContainer" parent="." unique_id=731681951]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 24.0
+offset_top = 32.0
+offset_right = -24.0
+offset_bottom = 32.0
+grow_horizontal = 2
+mouse_filter = 2
+
+[node name="VBox" type="VBoxContainer" parent="TopContainer" unique_id=1582016736]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TopHBox" type="HBoxContainer" parent="TopContainer/VBox" unique_id=779290170]
+layout_mode = 2
+
+[node name="DayLabel" type="Label" parent="TopContainer/VBox/TopHBox" unique_id=1629777134]
+layout_mode = 2
+theme_type_variation = &"Subtitle"
+text = " Día 1"
+
+[node name="Spacer" type="Control" parent="TopContainer/VBox/TopHBox" unique_id=1902699329]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StatusInfoLabel" type="Label" parent="TopContainer/VBox/TopHBox" unique_id=237710360]
+layout_mode = 2
+theme_type_variation = &"Body"
+text = "Negocio 1"
+
+[node name="MoneyBar" type="ProgressBar" parent="TopContainer/VBox" unique_id=439166215]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_type_variation = &"MoneyBar"
+show_percentage = false
+
+[node name="MoneyLabel" type="Label" parent="TopContainer/VBox/MoneyBar" unique_id=270897453]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"Subtitle"
+text = "💰   $0 / $0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Resources" type="HBoxContainer" parent="TopContainer/VBox" unique_id=1094963397]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="TimeBar" type="ProgressBar" parent="TopContainer/VBox/Resources" unique_id=379273241]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"TimeBar"
+show_percentage = false
+
+[node name="TimeLabel" type="Label" parent="TopContainer/VBox/Resources/TimeBar" unique_id=912004471]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"Body"
+text = "⏱ 60s / 60s"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EnergyBar" type="ProgressBar" parent="TopContainer/VBox/Resources" unique_id=1030244770]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"EnergyBar"
+show_percentage = false
+
+[node name="EnergyLabel" type="Label" parent="TopContainer/VBox/Resources/EnergyBar" unique_id=154738206]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"Body"
+text = "⚡ 100 / 100"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Telemetry" type="HBoxContainer" parent="TopContainer/VBox" unique_id=9110354]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="LeftSpace" type="Control" parent="TopContainer/VBox/Telemetry" unique_id=2094695337]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="StreakRing" type="Control" parent="TopContainer/VBox/Telemetry" unique_id=1418186780]
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("5_ring")
+ring_width = 7.0
+inner_width = 2.0
+
+[node name="Center" type="VBoxContainer" parent="TopContainer/VBox/Telemetry/StreakRing" unique_id=34174651]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="CaptionLabel" type="Label" parent="TopContainer/VBox/Telemetry/StreakRing/Center" unique_id=1463241179]
+layout_mode = 2
+theme_type_variation = &"Body"
+text = "RACHA"
+horizontal_alignment = 1
+
+[node name="ValueLabel" type="Label" parent="TopContainer/VBox/Telemetry/StreakRing/Center" unique_id=2085544077]
+layout_mode = 2
+theme_type_variation = &"Subtitle"
+text = "0"
+horizontal_alignment = 1
+
+[node name="MultiplierLabel" type="Label" parent="TopContainer/VBox/Telemetry/StreakRing/Center" unique_id=477832939]
+visible = false
+layout_mode = 2
+theme_type_variation = &"Subtitle"
+text = "x1.00"
+horizontal_alignment = 1
+
+[node name="MiddleSpace" type="Control" parent="TopContainer/VBox/Telemetry" unique_id=2067149053]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+mouse_filter = 2
+
+[node name="RatePanel" type="HBoxContainer" parent="TopContainer/VBox/Telemetry" unique_id=548176260]
+custom_minimum_size = Vector2(200, 96)
+layout_mode = 2
+size_flags_horizontal = 0
+mouse_filter = 2
+theme_override_constants/separation = 12
+alignment = 2
+
+[node name="VBox" type="VBoxContainer" parent="TopContainer/VBox/Telemetry/RatePanel" unique_id=954260136]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="RateValue" type="Label" parent="TopContainer/VBox/Telemetry/RatePanel/VBox" unique_id=154738207]
+layout_mode = 2
+theme_type_variation = &"Body"
+text = "🍓   1 frutas/s"
+horizontal_alignment = 1
+
+[node name="MultiplierValue" type="Label" parent="TopContainer/VBox/Telemetry/RatePanel/VBox" unique_id=1806806472]
+layout_mode = 2
+theme_type_variation = &"Subtitle"
+text = "🔥   Multi: x1"
+horizontal_alignment = 1
+
+[node name="RightSpace" type="Control" parent="TopContainer/VBox/Telemetry" unique_id=1794167727]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="BottomContainer" type="VBoxContainer" parent="." unique_id=193488530]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -132.0
+offset_right = -20.0
+offset_bottom = -25.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="KnifeInfoLabel" type="Label" parent="BottomContainer" unique_id=409289421]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"Body"
+text = "👊 Utensilio básico"
+horizontal_alignment = 1
+vertical_alignment = 1
+text_overrun_behavior = 3
+
+[node name="ButtonsHBox" type="HBoxContainer" parent="BottomContainer" unique_id=1636912296]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="StatsButton" type="Button" parent="BottomContainer/ButtonsHBox" unique_id=934254969]
+custom_minimum_size = Vector2(148, 56)
+layout_mode = 2
+text = "📊 Stats"
+
+[node name="PauseButton" type="Button" parent="BottomContainer/ButtonsHBox" unique_id=1983840188]
+custom_minimum_size = Vector2(148, 56)
+layout_mode = 2
+text = "⏸ Pausa"
+
+[node name="ToastLayer" type="CanvasLayer" parent="." unique_id=1660901840]
+layer = 10
+
+[node name="AchToast" type="PanelContainer" parent="ToastLayer" unique_id=429674138]
+visible = false
+modulate = Color(1, 1, 1, 0)
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 24.0
+offset_top = 20.0
+offset_right = -24.0
+offset_bottom = 112.0
+grow_horizontal = 2
+mouse_filter = 2
+theme = ExtResource("1_4ed8p")
+theme_override_styles/panel = SubResource("SB_ach_toast")
+
+[node name="HBox" type="HBoxContainer" parent="ToastLayer/AchToast" unique_id=362565018]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="AchIcon" type="Label" parent="ToastLayer/AchToast/HBox" unique_id=1949139159]
+layout_mode = 2
+theme_type_variation = &"IconLabel"
+text = "🏆"
+
+[node name="VBox" type="VBoxContainer" parent="ToastLayer/AchToast/HBox" unique_id=608594429]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="AchTitle" type="Label" parent="ToastLayer/AchToast/HBox/VBox" unique_id=1768680635]
+layout_mode = 2
+theme_type_variation = &"SubtitleLabel"
+text = "Logro completado"
+
+[node name="AchDesc" type="Label" parent="ToastLayer/AchToast/HBox/VBox" unique_id=1383078964]
+layout_mode = 2
+theme_type_variation = &"Body"
+text = "¡Completado!"
+autowrap_mode = 3
+
+[node name="MultiplierFlyLabel" type="Label" parent="." unique_id=1234567899]
+visible = false
+modulate = Color(1, 1, 1, 0)
+z_index = 1
+layout_mode = 1
+offset_right = 140.0
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"Title"
+text = "x2"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MilestoneLabel" type="Label" parent="." unique_id=1398046872]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.06
+anchor_top = 0.5
+anchor_right = 0.94
+anchor_bottom = 0.5
+offset_top = -80.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"Title"
+text = "¡YA PICASTE!"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="PausePanel" type="Control" parent="." unique_id=1449909531]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Scrim" type="ColorRect" parent="PausePanel" unique_id=1650526445]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="Card" type="PanelContainer" parent="PausePanel" unique_id=326716640]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.08
+anchor_top = 0.5
+anchor_right = 0.92
+anchor_bottom = 0.5
+offset_top = -280.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"ModalPanel"
+script = ExtResource("fit")
+
+[node name="PauseVBox" type="VBoxContainer" parent="PausePanel/Card" unique_id=1242514794]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="PauseTitle" type="Label" parent="PausePanel/Card/PauseVBox" unique_id=1364902588]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+text = "⏸ PAUSA"
+horizontal_alignment = 1
+
+[node name="PauseDayLabel" type="Label" parent="PausePanel/Card/PauseVBox" unique_id=606148712]
+layout_mode = 2
+theme_type_variation = &"Body"
+horizontal_alignment = 1
+
+[node name="ContinueButton" type="Button" parent="PausePanel/Card/PauseVBox" unique_id=1124531529]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_type_variation = &"PrimaryButton"
+text = "▶ CONTINUAR"
+
+[node name="SettingsButton" type="Button" parent="PausePanel/Card/PauseVBox" unique_id=369007885]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+text = "⚙️ AJUSTES"
+
+[node name="PauseQuitButton" type="Button" parent="PausePanel/Card/PauseVBox" unique_id=11446429]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_type_variation = &"DangerButton"
+text = "🚪 SALIR"
+
+[node name="SettingsVBox" type="VBoxContainer" parent="PausePanel/Card" unique_id=1935636313]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="SettingsTitle" type="Label" parent="PausePanel/Card/SettingsVBox" unique_id=1341342988]
+layout_mode = 2
+theme_type_variation = &"TitleLabel"
+text = "AJUSTES"
+horizontal_alignment = 1
+
+[node name="SettingsSection" parent="PausePanel/Card/SettingsVBox" unique_id=1561902042 instance=ExtResource("2_ss")]
+layout_mode = 2
+
+[node name="SettingsBackButton" type="Button" parent="PausePanel/Card/SettingsVBox" unique_id=430230446]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+text = "← VOLVER"
+
+[node name="PauseConfirmDialog" parent="." unique_id=43942158 instance=ExtResource("3_cd")]
+layout_mode = 1

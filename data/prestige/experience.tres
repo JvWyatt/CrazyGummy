@@ -1,0 +1,11 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/PrestigeUpgradeData.gd" id="1_prestige"]
+
+[resource]
+script = ExtResource("1_prestige")
+id = "experience"
+name = "Maestría"
+desc = "+20% Daño inicial"
+cost = 3
+icon = "⚔️"

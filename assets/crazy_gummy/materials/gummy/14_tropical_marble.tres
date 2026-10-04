@@ -1,0 +1,12 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+[ext_resource type="Shader" path="res://assets/crazy_gummy/materials/gummy/gummy.gdshader" id="1"]
+[resource]
+resource_name = "14 · Mármol tropical"
+shader = ExtResource("1")
+shader_parameter/primary_color = Color(1, 0.36, 0.05, 1)
+shader_parameter/secondary_color = Color(0.92, 0.04, 0.39, 1)
+shader_parameter/pattern_mode = 3
+shader_parameter/pattern_scale = 14.0
+shader_parameter/pattern_mix = 0.9
+shader_parameter/opacity = 0.91
+shader_parameter/surface_roughness = 0.21

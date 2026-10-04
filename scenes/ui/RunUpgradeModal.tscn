@@ -1,0 +1,141 @@
+[gd_scene load_steps=4 format=3 uid="uid://df72mk4w870p1"]
+
+[ext_resource type="Theme" uid="uid://cw00u1brw0yxi" path="res://themes/ui01_theme.tres" id="1_theme"]
+[ext_resource type="Script" uid="uid://cb37pyc3foyhx" path="res://scripts/ui/RunUpgradeModal.gd" id="1_upm"]
+[ext_resource type="Script" uid="uid://b5kdfot8rrbtk" path="res://scripts/ui/TouchScrollContainer.gd" id="2_touch_scroll"]
+[ext_resource type="Script" path="res://scripts/ui/ResponsiveGrid.gd" id="3_grid"]
+[ext_resource type="Script" path="res://scripts/ui/ContentSizedModal.gd" id="fit"]
+
+[node name="RunUpgradeModal" type="Control"]
+theme = ExtResource("1_theme")
+z_index = 30
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_upm")
+
+[node name="Dimmer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_left = 0.05
+anchor_top = 0.06
+anchor_right = 0.95
+anchor_bottom = 0.94
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = "ModalPanel"
+script = ExtResource("fit")
+tab_height_reference = NodePath("VBox/TabContainer/Mejoras")
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="HeaderHBox" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="Panel/VBox/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"TitleLabel"
+text = "MERCADO"
+autowrap_mode = 3
+
+[node name="MoneyLabel" type="Label" parent="Panel/VBox/HeaderHBox"]
+layout_mode = 2
+theme_type_variation = &"Body"
+text = "💰 $0"
+
+[node name="CloseButton" type="Button" parent="Panel/VBox/HeaderHBox"]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+text = "✖"
+
+[node name="HSeparator" type="HSeparator" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="TabContainer" type="TabContainer" parent="Panel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+current_tab = 0
+
+[node name="Mejoras" type="ScrollContainer" parent="Panel/VBox/TabContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("2_touch_scroll")
+metadata/_tab_index = 0
+
+[node name="ItemsGrid" type="Container" parent="Panel/VBox/TabContainer/Mejoras"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("3_grid")
+min_card_width = 240.0
+max_columns = 2
+uniform_card_size = true
+h_separation = 16
+v_separation = 16
+
+[node name="Frutería" type="ScrollContainer" parent="Panel/VBox/TabContainer"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("2_touch_scroll")
+metadata/_tab_index = 1
+
+[node name="ItemsGrid" type="Container" parent="Panel/VBox/TabContainer/Frutería"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("3_grid")
+min_card_width = 180.0
+max_columns = 4
+uniform_card_size = true
+card_aspect_ratio = 1.0
+h_separation = 8
+v_separation = 8
+center_orphan = true
+
+[node name="Armas" type="ScrollContainer" parent="Panel/VBox/TabContainer"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("2_touch_scroll")
+metadata/_tab_index = 2
+
+[node name="ItemsGrid" type="Container" parent="Panel/VBox/TabContainer/Armas"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("3_grid")
+min_card_width = 180.0
+max_columns = 4
+uniform_card_size = true
+card_aspect_ratio = 1.0
+h_separation = 8
+v_separation = 8
+center_orphan = true
+
+[node name="BottomHBox" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="StatsButton" type="Button" parent="Panel/VBox/BottomHBox"]
+custom_minimum_size = Vector2(130, 56)
+layout_mode = 2
+text = "📊 Stats"
+
+[node name="ContinueButton" type="Button" parent="Panel/VBox/BottomHBox"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = "PrimaryButton"
+text = "▶ SIGUIENTE DÍA"
