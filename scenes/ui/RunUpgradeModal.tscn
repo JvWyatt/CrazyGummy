@@ -86,40 +86,40 @@ uniform_card_size = true
 h_separation = 16
 v_separation = 16
 
-[node name="Frutería" type="ScrollContainer" parent="Panel/VBox/TabContainer"]
+[node name="Recetas" type="ScrollContainer" parent="Panel/VBox/TabContainer"]
 visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 script = ExtResource("2_touch_scroll")
 metadata/_tab_index = 1
 
-[node name="ItemsGrid" type="Container" parent="Panel/VBox/TabContainer/Frutería"]
+[node name="ItemsGrid" type="Container" parent="Panel/VBox/TabContainer/Recetas"]
 layout_mode = 2
 size_flags_horizontal = 3
 script = ExtResource("3_grid")
 min_card_width = 180.0
 max_columns = 4
 uniform_card_size = true
-card_aspect_ratio = 1.0
+card_aspect_ratio = 0.0
 h_separation = 8
 v_separation = 8
 center_orphan = true
 
-[node name="Armas" type="ScrollContainer" parent="Panel/VBox/TabContainer"]
+[node name="Herramientas" type="ScrollContainer" parent="Panel/VBox/TabContainer"]
 visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 script = ExtResource("2_touch_scroll")
 metadata/_tab_index = 2
 
-[node name="ItemsGrid" type="Container" parent="Panel/VBox/TabContainer/Armas"]
+[node name="ItemsGrid" type="Container" parent="Panel/VBox/TabContainer/Herramientas"]
 layout_mode = 2
 size_flags_horizontal = 3
 script = ExtResource("3_grid")
 min_card_width = 180.0
 max_columns = 4
 uniform_card_size = true
-card_aspect_ratio = 1.0
+card_aspect_ratio = 0.0
 h_separation = 8
 v_separation = 8
 center_orphan = true
@@ -131,7 +131,12 @@ theme_override_constants/separation = 10
 [node name="StatsButton" type="Button" parent="Panel/VBox/BottomHBox"]
 custom_minimum_size = Vector2(130, 56)
 layout_mode = 2
-text = "📊 Stats"
+text = "📊 Datos"
+
+[node name="SaveExitButton" type="Button" parent="Panel/VBox/BottomHBox"]
+custom_minimum_size = Vector2(172, 56)
+layout_mode = 2
+text = "💾 GUARDAR Y SALIR"
 
 [node name="ContinueButton" type="Button" parent="Panel/VBox/BottomHBox"]
 custom_minimum_size = Vector2(0, 56)

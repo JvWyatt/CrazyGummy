@@ -1,15 +1,14 @@
 extends Control
 # ============================================================================
-# ResultsModal: pantalla final que aparece cuando el negocio quiebra (o el
-# jugador renuncia). Muestra el resumen del negocio y la reputación ganada
-# (calculada en GameManager.end_run_failed).
+# ResultsModal: resumen del negocio exitoso, cerrado o en quiebra.
 # ============================================================================
 
 signal return_to_menu_requested
 
+@onready var title_label: Label = $Panel/VBox/TitleLabel
 @onready var orders_label: Label = $Panel/VBox/StatsVBox/OrdersLabel
 @onready var money_label: Label = $Panel/VBox/StatsVBox/MoneyLabel
-@onready var fruits_label: Label = $Panel/VBox/StatsVBox/FruitsLabel
+@onready var gummies_label: Label = $Panel/VBox/StatsVBox/GummiesLabel
 @onready var jackpots_label: Label = $Panel/VBox/StatsVBox/JackpotsLabel
 @onready var golden_label: Label = $Panel/VBox/StatsVBox/GoldenLabel
 @onready var prestige_earned_label: Label = $Panel/VBox/PrestigeContainer/VBox/PrestigeEarnedLabel
@@ -21,12 +20,18 @@ func _ready() -> void:
 
 func open_modal(summary: Dictionary) -> void:
 	visible = true
+	if summary.get("successful", false):
+		title_label.text = "🏆 NEGOCIO EXITOSO"
+	elif summary.get("end_reason", "failed") == "quit":
+		title_label.text = "NEGOCIO FINALIZADO"
+	else:
+		title_label.text = "NEGOCIO EN QUIEBRA"
 	UiTheme.pop_in($Panel)
 	orders_label.text = "📋 Días completados en el negocio: " + str(summary.get("completed_orders", 0))
 	money_label.text = "💰 Ganancias generadas: $" + UiTheme.format_money(float(summary.get("money_generated", 0.0)))
-	fruits_label.text = "🍉 Frutas cortadas: " + str(summary.get("fruits_cut", 0))
+	gummies_label.text = "🍬 Gomitas producidas: " + str(summary.get("gummies_produced", 0))
 	jackpots_label.text = "⭐ Jackpots conseguidos: " + str(summary.get("jackpots", 0))
-	golden_label.text = "✨ Frutas doradas cortadas: " + str(summary.get("golden_fruits", 0))
+	golden_label.text = "✨ Gomitas doradas: " + str(summary.get("golden_gummies", 0))
 	prestige_earned_label.text = "+ " + UiTheme.format_money(float(summary.get("earned_prestige", 0))) + " ⭐"
 
 func _on_continue_pressed() -> void:

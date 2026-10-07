@@ -162,7 +162,7 @@ func _generate_tone_stream(freq_start: float, freq_end: float, duration: float, 
 	stream.data = byte_array
 	return stream
 
-func play_slice() -> void:
+func play_stroke() -> void:
 	if not is_sound_enabled: return
 	var stream := _generate_tone_stream(randf_range(800.0, 1200.0), 300.0, 0.08, "noise", 8.0)
 	var p := _get_available_player()

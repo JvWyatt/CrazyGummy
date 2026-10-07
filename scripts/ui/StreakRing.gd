@@ -9,21 +9,20 @@ extends Control
 # siguiente nivel. No se pone ningún texto del tipo "llega a X", porque el
 # propio aro ya lo comunica.
 #
-# En el centro vive SIEMPRE el número de frutas de la racha actual. El
-# multiplicador NO es texto permanente: aparece en el MISMO sitio durante un
-# instante (con una pequeña animación) solo cuando se activa o sube, y luego
-# desaparece dejando el contador otra vez a la vista.
+# En el centro vive SIEMPRE el número de gomitas de la racha actual: no se
+# sustituye nunca por otro texto. El aviso del multiplicador (cuando sube) lo
+# pinta el HUD en su propio panel (RatePanel/MultiplierFlyLabel).
 #
-# El ritmo de frutas por segundo NO va aquí: es un contador informativo y vive
+# El ritmo de cubos por segundo NO va aquí: es un contador informativo y vive
 # en su propio panel del HUD (RatePanel), al lado opuesto.
 #
 # Solo pinta y anima; los datos llegan desde HUD.gd (GameManager/StatsManager).
 # ============================================================================
 
-@export var track_color: Color = Color(0.16, 0.2, 0.32, 1)
-@export var fill_color: Color = Color(1.0, 0.55, 0.2, 1)
-@export var inner_color: Color = Color(1.0, 0.55, 0.2, 0.35)
-@export var inner_bg: Color = Color(0.055, 0.071, 0.125, 0.95)
+@export var track_color: Color = Color("#514560")
+@export var fill_color: Color = Color("#ff8fa3")
+@export var inner_color: Color = Color(1.0, 0.65, 0.78, 0.25)
+@export var inner_bg: Color = Color("#211f36")
 @export var ring_width: float = 12.0
 @export var inner_width: float = 5.0
 
@@ -31,62 +30,28 @@ var _display_progress: float = 0.0
 var _target_progress: float = 0.0
 var _progress_tween: Tween
 var _flash_tween: Tween
-var _multiplier_tween: Tween
-
-# Cuánto permanece visible el multiplicador cuando se activa o aumenta.
-@export var multiplier_hold: float = 1.3
 
 @onready var value_label: Label = $Center/ValueLabel
 @onready var multiplier_label: Label = $Center/MultiplierLabel
 
 func _ready() -> void:
-	# El multiplicador arranca oculto: solo aparece cuando toca.
+	# El aviso del multiplicador arranca oculto: solo lo pinta el HUD.
 	_show_value()
 
 # --- Datos -----------------------------------------------------------------
 
-# ratio: avance hacia el siguiente nivel (0..1). streak: frutas de la racha.
-# El multiplicador NO se escribe aquí a propósito: lo controla show_multiplier()
-# para que nunca quede fijo en pantalla.
+# ratio: avance hacia el siguiente nivel (0..1). streak: gomitas de la racha.
 func set_streak(ratio: float, streak: int) -> void:
 	value_label.text = str(streak)
 	_animate_progress(clampf(ratio, 0.0, 1.0))
 
-# Aviso momentáneo del multiplicador: sustituye al contador en el centro, hace
-# un pequeño rebote, espera y devuelve el control al número de la racha.
-# Se llama solo cuando el multiplicador se activa o sube (ver HUD.gd).
-func show_multiplier(multiplier: float) -> void:
-	multiplier_label.text = "x" + UiTheme.format_stat(multiplier)
-	if _multiplier_tween and _multiplier_tween.is_valid():
-		_multiplier_tween.kill()
-
-	multiplier_label.visible = true
-	multiplier_label.modulate = Color(1, 1, 1, 1)
-	# Pivote al centro para que el rebote crezca sobre sí mismo y no se deslice.
-	multiplier_label.pivot_offset = multiplier_label.size * 0.5
-	multiplier_label.scale = Vector2(0.55, 0.55)
-	value_label.visible = false
-
-	_multiplier_tween = create_tween()
-	_multiplier_tween.set_parallel(true)
-	# Rebote de entrada (ligeramente por encima de 1 para que "explote").
-	_multiplier_tween.tween_property(multiplier_label, "scale", Vector2(1.18, 1.18), 0.22)\
-		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_multiplier_tween.tween_property(multiplier_label, "scale", Vector2(1.0, 1.0), 0.16)\
-		.set_delay(0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	_multiplier_tween.tween_property(multiplier_label, "modulate:a", 0.0, 0.28)\
-		.set_delay(multiplier_hold).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	_multiplier_tween.chain().tween_callback(_show_value)
-
-# Vuelve a mostrar el contador de racha (fin del aviso o racha rota).
+# Vuelve a mostrar el contador de racha (racha rota).
 func _show_value() -> void:
 	multiplier_label.visible = false
 	value_label.visible = true
 
-# Destello rojo al romperse la racha (al tocar una piedra u obstáculo).
+# Destello rojo al romperse la racha (al tocar una caramelo endurecido u obstáculo).
 func flash_break() -> void:
-	if _multiplier_tween and _multiplier_tween.is_valid():
-		_multiplier_tween.kill()
 	_show_value()
 	if _flash_tween and _flash_tween.is_valid():
 		_flash_tween.kill()
@@ -136,3 +101,7 @@ func _draw() -> void:
 	draw_arc(center, arc_radius, 0.0, TAU, 64, track_color, ring_width, true)
 	if _display_progress > 0.0:
 		draw_arc(center, arc_radius, -PI / 2.0, -PI / 2.0 + TAU * _display_progress, 64, fill_color, ring_width, true)
+		# Reflejo fino y extremos redondos: acabado gummy sin partículas continuas.
+		draw_arc(center, arc_radius - ring_width * 0.22, -PI / 2.0, -PI / 2.0 + TAU * _display_progress, 64, fill_color.lightened(0.45), 1.5, true)
+		var end_angle: float = -PI / 2.0 + TAU * _display_progress
+		draw_circle(center + Vector2(cos(end_angle), sin(end_angle)) * arc_radius, ring_width * 0.5, fill_color)

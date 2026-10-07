@@ -24,7 +24,7 @@ func _refresh_ui() -> void:
 	$Panel/VBox/MilestonePanel/Content/ProgressBar.value = mini(best, 100)
 
 	_add_row("Negocios iniciados", str(int(SaveManager.save_data.get("days_started", 0))))
-	_add_row("Frutas cortadas en total", UiTheme.format_money(float(SaveManager.save_data.get("total_fruits_cut", 0))))
+	_add_row("Gomitas producidas", UiTheme.format_money(float(SaveManager.save_data.get("total_gummies_produced", 0))))
 	_add_row("Comodines descubiertos", str(SaveManager.get_discovered_cards().size()) + " / " + str(CardDatabase.ALL_CARDS.size()))
 
 func _add_row(label_text: String, value_text: String) -> void:

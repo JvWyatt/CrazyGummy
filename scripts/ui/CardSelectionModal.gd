@@ -55,7 +55,7 @@ func open_modal(order_completed_num: int) -> void:
 	tax_value.text = "$" + UiTheme.format_money(tax)
 	var profit: float = earned - tax
 	profit_value.text = "$" + UiTheme.format_money(profit)
-	profit_value.modulate = Color(0.6, 0.95, 0.6, 1) if profit >= 0.0 else Color(1, 0.6, 0.6, 1)
+	profit_value.modulate = UiTheme.COLOR_SUCCESS if profit >= 0.0 else UiTheme.COLOR_DANGER
 
 	# Vista previa del objetivo del próximo día (debajo del impuesto del resumen).
 	next_target_value.text = "$" + UiTheme.format_money(GameManager.get_order_target_for(GameManager.current_order + 1))

@@ -1,28 +1,28 @@
 extends Node
 class_name Ballistic
 # ============================================================================
-# Ballistic: componente de movimiento parab\u00f3lico (estilo Fruit Ninja).
+# Ballistic: componente de movimiento parab\u00f3lico (estilo GummyBlock Ninja).
 # ----------------------------------------------------------------------------
-# Se usa como hijo de frutas y obst\u00e1culos. Es puramente mec\u00e1nico: no
-# sabe nada de frutas, obst\u00e1culos, vida, resistencia ni da\u00f1o.
+# Se usa como hijo de cubos y obst\u00e1culos. Es puramente mec\u00e1nico: no
+# sabe nada de cubos, obst\u00e1culos, vida, resistencia ni da\u00f1o.
 # Los proyectiles REBOTAN en las paredes laterales (wall_left/wall_right) y
 # solo salen del juego al caer por debajo de escape_y (entonces llama a
 # _on_projectile_escaped() en su padre).
 # ============================================================================
 
 var velocity: Vector2 = Vector2.ZERO
-# Constantes del lanzamiento, compartidas por frutas y obstáculos.
-# Gravedad x1.21 (960 - 1161.6): junto con la velocidad x1.1 de FruitSpawner,
+# Constantes del lanzamiento, compartidas por cubos y obstáculos.
+# Gravedad x1.21 (960 - 1161.6): junto con la velocidad x1.1 de BlockSpawner,
 # los proyectiles van 10% más rápido pero conservan el mismo alcance/altura.
 const DEFAULT_GRAVITY: float = 1161.6
 const DEFAULT_WALL_LEFT: float = 10.0
 const DEFAULT_WALL_RIGHT: float = 710.0
 const DEFAULT_ESCAPE_Y: float = 1500.0
 
-# Valores POR DEFECTO editables en el inspector de cada escena (Fruit.tscn y
+# Valores POR DEFECTO editables en el inspector de cada escena (GummyBlock.tscn y
 # Obstacle.tscn). Al lanzar con centinelas (gravedad -1, paredes/escape 0) se
 # usan estos valores exportados; si el llamador pasa valores reales, mandan los
-# suyos (ver FruitSpawner, que pasa las paredes y la altura de escape REALES).
+# suyos (ver BlockSpawner, que pasa las paredes y la altura de escape REALES).
 @export_range(0.0, 5000.0, 0.1) var gravity_default: float = DEFAULT_GRAVITY
 @export_range(0.0, 2000.0, 1.0) var wall_left_default: float = DEFAULT_WALL_LEFT
 @export_range(0.0, 2000.0, 1.0) var wall_right_default: float = DEFAULT_WALL_RIGHT
@@ -38,7 +38,7 @@ var is_active: bool = false
 # Solo funciona si el padre es un Node2D (se desplaza al padre).
 # p_escape_y: altura (px) por debajo de la cual el proyectil "escapa". Debe ir
 # acorde al alto REAL del viewport: un valor fijo (p.ej. 1500) elimina las
-# frutas al instante en pantallas más altas que 720x1280 (la fruta nace a
+# cubos al instante en pantallas más altas que 720x1280 (la cubo nace a
 # play_bounds.end.y + 150, que en pantalla alta supera 1500).
 func launch(from_position: Vector2, launch_velocity: Vector2, p_gravity: float = -1.0, p_wall_left: float = 0.0, p_wall_right: float = 0.0, p_escape_y: float = 0.0) -> void:
 	var parent := get_parent()

@@ -1,53 +1,63 @@
 extends Control
 # ============================================================================
 # RunUpgradeModal: el "mercado" que se abre entre pedidos, con 3 pestañas:
-#   - Mejoras:   sube daño/energía/suerte/dinero con el dinero de la partida
-#   - Frutería:  desbloquea frutas nuevas para esta partida
-#   - Armas:     desbloquea y equipa armas nuevas para esta partida
+#   - Mejoras: sube potencia/resistencia/suerte/ganancias/ritmo de la partida.
+#   - Recetas: desbloquea nuevas gomitas para esta partida (nodo Recetas).
+#   - Herramientas: desbloquea y equipa herramientas (nodo Herramientas).
 # TODO lo comprado aquí usa GameManager.run_money y se pierde si el negocio
-# quiebra (ver GameManager.start_new_run que reinicia run_unlocked_fruits,
-# run_unlocked_knives y StatsManager.run_upgrade_levels).
+# quiebra (ver GameManager.start_new_run que reinicia run_unlocked_recipes,
+# run_unlocked_tools y StatsManager.run_upgrade_levels).
 #
 # DISEÑO EN REJILLA: las tres pestañas muestran tarjetas en un ResponsiveGrid
 # (scripts/ui/ResponsiveGrid.gd): ShopCard para las mejoras y CollectionCard
-# para frutas y armas. Todo el aspecto de las tarjetas vive en esos scripts;
+# para recetas y herramientas. El aspecto de las tarjetas vive en esos scripts;
 # aquí solo hay datos, precios y compra. Para volver al listado vertical basta
 # con cambiar el nodo ItemsGrid por el VBoxContainer anterior.
 # ============================================================================
 
 signal start_next_order_requested
 signal open_stats_requested
+signal save_and_quit_requested
 
 @onready var title_label: Label = $Panel/VBox/HeaderHBox/TitleLabel
 @onready var money_label: Label = $Panel/VBox/HeaderHBox/MoneyLabel
 @onready var close_button: Button = $Panel/VBox/HeaderHBox/CloseButton
 @onready var items_container: ResponsiveGrid = $Panel/VBox/TabContainer/Mejoras/ItemsGrid
-@onready var fruit_items_container: ResponsiveGrid = $Panel/VBox/TabContainer/Frutería/ItemsGrid
-@onready var weapon_items_container: ResponsiveGrid = $Panel/VBox/TabContainer/Armas/ItemsGrid
+@onready var recipe_items_container: ResponsiveGrid = $Panel/VBox/TabContainer/Recetas/ItemsGrid
+@onready var tool_items_container: ResponsiveGrid = $Panel/VBox/TabContainer/Herramientas/ItemsGrid
 @onready var stats_button: Button = $Panel/VBox/BottomHBox/StatsButton
+@onready var save_and_quit_button: Button = $Panel/VBox/BottomHBox/SaveExitButton
 @onready var continue_button: Button = $Panel/VBox/BottomHBox/ContinueButton
 
 # Cached row refs so purchases can update in place instead of rebuilding the whole shop
 var _upgrade_rows: Dictionary = {} # key -> {name_lbl, buy_btn}
-var _fruit_rows: Dictionary = {} # fruit_id -> {card, buy_btn, price}
-var _weapon_rows: Dictionary = {} # knife_id -> {card, buy_btn}
+var _recipe_rows: Dictionary = {} # recipe_id -> {card, buy_btn, price}
+var _tool_rows: Dictionary = {} # tool_id -> {card, buy_btn}
 var _prepare_queue: Array[Dictionary] = []
 
 func _ready() -> void:
+	stats_button.icon = preload("res://scripts/ui/GummyIcons.gd").texture("stats")
+	stats_button.expand_icon = true
+	stats_button.text = "Datos"
+	# Títulos visibles independientes de las rutas históricas de los nodos.
+	$Panel/VBox/TabContainer.set_tab_title(1, "Recetas")
+	$Panel/VBox/TabContainer.set_tab_title(2, "Herramientas")
 	StatsManager.stats_updated.connect(_refresh_upgrade_stats)
 	close_button.pressed.connect(_on_close_pressed)
 	continue_button.pressed.connect(_on_continue_pressed)
 	stats_button.pressed.connect(_on_stats_pressed)
+	save_and_quit_button.pressed.connect(_on_save_and_quit_pressed)
+	UiTheme.add_hover_scale(save_and_quit_button, 0.0)
 	# Construye una tarjeta por frame mientras el mercado está cerrado.
 	_prepare_ui()
 
 func _prepare_ui() -> void:
 	for key in StatsManager.run_upgrade_definitions:
 		_prepare_queue.append({"shop": "upgrade", "id": key})
-	for fruit_id in FruitDatabase.get_sorted_fruit_ids():
-		_prepare_queue.append({"shop": "fruit", "id": fruit_id})
-	for knife_id in StatsManager.get_sorted_knife_ids():
-		_prepare_queue.append({"shop": "weapon", "id": knife_id})
+	for recipe_id in RecipeDatabase.get_sorted_recipe_ids():
+		_prepare_queue.append({"shop": "recipe", "id": recipe_id})
+	for tool_id in StatsManager.get_sorted_tool_ids():
+		_prepare_queue.append({"shop": "tool", "id": tool_id})
 	set_process(true)
 
 func _process(_delta: float) -> void:
@@ -57,8 +67,8 @@ func _process(_delta: float) -> void:
 	var item: Dictionary = _prepare_queue.pop_front()
 	match item["shop"]:
 		"upgrade": _rebuild_upgrade_shop([item["id"]])
-		"fruit": _rebuild_fruit_shop([str(item["id"])])
-		"weapon": _rebuild_weapon_shop([str(item["id"])])
+		"recipe": _rebuild_recipe_shop([str(item["id"])])
+		"tool": _rebuild_tool_shop([str(item["id"])])
 	if _prepare_queue.is_empty():
 		set_process(false)
 
@@ -83,8 +93,8 @@ func _rebuild_ui() -> void:
 	set_process(false)
 	money_label.text = "💰 $" + UiTheme.format_money(GameManager.run_money)
 	_rebuild_upgrade_shop()
-	_rebuild_fruit_shop()
-	_rebuild_weapon_shop()
+	_rebuild_recipe_shop()
+	_rebuild_tool_shop()
 
 func _rebuild_upgrade_shop(upgrade_keys: Array = []) -> void:
 	var keys: Array = StatsManager.run_upgrade_definitions.keys() if upgrade_keys.is_empty() else upgrade_keys
@@ -126,23 +136,23 @@ func _upgrade_effect_text(key: String) -> String:
 	match key:
 		"damage":
 			bonus = StatsManager.balance.run_damage_bonus_per_level
-			stat_name = "Daño"
+			stat_name = "Potencia"
 			var current: float = StatsManager.get_final_damage()
 			var increment: float = StatsManager.get_run_damage_upgrade_next_value() - current
 			if current < StatsManager.balance.damage_pity_floor and increment > current * bonus:
-				return "+" + UiTheme.format_stat(increment) + " Daño"
+				return "+" + UiTheme.format_stat(increment) + " Potencia"
 		"energy_max":
 			bonus = StatsManager.balance.run_energy_bonus_per_level
 			stat_name = "Resistencia"
 		"luck":
 			bonus = StatsManager.balance.run_jackpot_bonus_per_level
-			return "+" + UiTheme.format_jackpot(bonus * 100.0, false) + " p.p. Jackpot"
+			return "+" + UiTheme.format_stat(bonus * 100.0) + " p.p. Jackpot"
 		"money":
 			bonus = StatsManager.balance.run_money_bonus_per_level
-			stat_name = "Dinero"
+			stat_name = "Ganancias"
 		"launch_rate":
 			bonus = StatsManager.balance.run_launch_bonus_per_level
-			stat_name = "Velocidad"
+			stat_name = "Ritmo"
 	return "+" + UiTheme.format_stat(bonus * 100.0) + "% " + stat_name
 
 # Update a single upgrade row (level text + cost) after purchase, no rebuild
@@ -157,25 +167,25 @@ func _update_upgrade_row(key: String) -> void:
 	row["desc_lbl"].text = _upgrade_effect_text(key)
 	row["buy_btn"].text = "MEJORAR $" + UiTheme.format_money(float(cost))
 
-# Actualiza los valores finales también al cambiar armas, comodines o prestigio.
+# Actualiza los valores finales también al cambiar herramientas, comodines o prestigio.
 func _refresh_upgrade_stats() -> void:
 	for key in _upgrade_rows:
 		_update_upgrade_row(str(key))
 
-# Fruta anterior en la cadena de desbloqueo ("" si es la primera). Regla de
-# la Frutería: no se puede comprar una fruta sin haber comprado la anterior.
-func _get_prev_fruit_id(fruit_id: String) -> String:
-	var ids: Array[String] = FruitDatabase.get_sorted_fruit_ids()
-	var idx: int = ids.find(fruit_id)
+# Receta anterior en la cadena de desbloqueo ("" si es la primera).
+# No se puede comprar una receta sin haber comprado la anterior.
+func _get_prev_recipe_id(recipe_id: String) -> String:
+	var ids: Array[String] = RecipeDatabase.get_sorted_recipe_ids()
+	var idx: int = ids.find(recipe_id)
 	if idx > 0:
 		return ids[idx - 1]
 	return ""
 
 # Arma anterior en la cadena de desbloqueo ("" si es la primera). Regla de la
-# Armería: no se puede desbloquear un arma sin haber desbloqueado la anterior.
-func _get_prev_knife_id(knife_id: String) -> String:
-	var ids: Array[String] = StatsManager.get_sorted_knife_ids()
-	var idx: int = ids.find(knife_id)
+# Herramientas: no se puede desbloquear un herramienta sin haber desbloqueado la anterior.
+func _get_prev_tool_id(tool_id: String) -> String:
+	var ids: Array[String] = StatsManager.get_sorted_tool_ids()
+	var idx: int = ids.find(tool_id)
 	if idx > 0:
 		return ids[idx - 1]
 	return ""
@@ -187,148 +197,159 @@ func _refresh_affordability() -> void:
 		var row: Dictionary = _upgrade_rows[key]
 		var cost: float = StatsManager.get_run_upgrade_cost(key)
 		row["buy_btn"].disabled = money < cost
-	for fruit_id in _fruit_rows.keys():
-		_sync_fruit_row(str(fruit_id))
-	_rebuild_weapon_shop()
+	for recipe_id in _recipe_rows.keys():
+		_sync_recipe_row(str(recipe_id))
+	_rebuild_tool_shop()
 
-# Sincroniza el texto/estado del botón de una fruta de la Frutería teniendo en
-# cuenta DOS cosas: dinero suficiente Y que esté desbloqueada la fruta anterior
+# Sincroniza el texto/estado del botón de una receta teniendo en
+# cuenta DOS cosas: dinero suficiente Y que esté desbloqueada la receta anterior
 # (regla de cadena).
-func _sync_fruit_row(fruit_id: String) -> void:
-	if not _fruit_rows.has(fruit_id):
+func _sync_recipe_row(recipe_id: String) -> void:
+	if not _recipe_rows.has(recipe_id):
 		return
-	var row: Dictionary = _fruit_rows[fruit_id]
+	var row: Dictionary = _recipe_rows[recipe_id]
 	var card: CollectionCard = row["card"]
 	var buy_btn: Button = row["buy_btn"]
-	var unlocked: bool = GameManager.is_fruit_unlocked_this_run(fruit_id)
-	var prev_id: String = _get_prev_fruit_id(fruit_id)
-	var chain_ok: bool = prev_id == "" or GameManager.is_fruit_unlocked_this_run(prev_id)
+	var unlocked: bool = GameManager.is_recipe_unlocked_this_run(recipe_id)
+	var prev_id: String = _get_prev_recipe_id(recipe_id)
+	var chain_ok: bool = prev_id == "" or GameManager.is_recipe_unlocked_this_run(prev_id)
 
 	if unlocked:
-		# Ya desbloqueada: fuera el velo y se ve el emoji con sus datos.
+		# Ya desbloqueada: fuera el velo y se ve la ilustración con sus datos.
 		card.set_locked(false)
 		buy_btn.text = "DISPONIBLE"
 		buy_btn.disabled = true
+		card.set_visual_state("owned")
 		return
 	if not chain_ok:
 		card.set_locked(true)
 		buy_btn.text = "BLOQUEADO"
 		buy_btn.disabled = true
+		card.set_visual_state("locked")
 		return
-	card.set_locked(true)
+	card.set_locked(true, "", true)
 	buy_btn.text = "$" + UiTheme.format_money(float(row["price"]))
-	buy_btn.tooltip_text = "Desbloquear fruta"
+	buy_btn.tooltip_text = "Adquirir receta"
 	buy_btn.disabled = GameManager.run_money < int(row["price"])
+	card.set_visual_state("buyable" if not buy_btn.disabled else "discovered")
 
-func _rebuild_fruit_shop(selected_ids: Array[String] = []) -> void:
-	var fruit_ids: Array[String] = FruitDatabase.get_sorted_fruit_ids() if selected_ids.is_empty() else selected_ids
-	for fruit_id in fruit_ids:
-		var fruit_data: FruitData = FruitDatabase.get_fruit_data(fruit_id)
-		var price: int = StatsManager.get_fruit_price(fruit_data.price)
-		if _fruit_rows.has(fruit_id):
-			_fruit_rows[fruit_id]["price"] = price
-			_fruit_rows[fruit_id]["card"].reset_face()
-			_sync_fruit_row(fruit_id)
+func _rebuild_recipe_shop(selected_ids: Array[String] = []) -> void:
+	var recipe_ids: Array[String] = RecipeDatabase.get_sorted_recipe_ids() if selected_ids.is_empty() else selected_ids
+	for recipe_id in recipe_ids:
+		var recipe_data: RecipeData = RecipeDatabase.get_recipe_data(recipe_id)
+		var price: int = StatsManager.get_recipe_price(recipe_data.price)
+		if _recipe_rows.has(recipe_id):
+			_recipe_rows[recipe_id]["price"] = price
+			_recipe_rows[recipe_id]["card"].reset_face()
+			_sync_recipe_row(recipe_id)
 			continue
 
-		var stats_lbl: String = "Vida: " + UiTheme.format_stat(fruit_data.max_hp)
-		stats_lbl += "\nGanancias:\n$" + UiTheme.format_money(fruit_data.min_reward)
-		stats_lbl += " - $" + UiTheme.format_money(fruit_data.max_reward)
+		var stats_lbl: String = "Dureza: " + UiTheme.format_stat(recipe_data.max_hp)
+		# Rango monetario compacto para que quepa junto al nombre oficial completo.
+		stats_lbl += "\n$" + UiTheme.format_money(recipe_data.min_reward)
+		stats_lbl += " - $" + UiTheme.format_money(recipe_data.max_reward)
 
-		# Cara = la fruta; reverso = sus numeros. Las bloqueadas conservan su
+		# Cara = la receta; reverso = sus números. Las bloqueadas conservan su
 		# hueco en el grid pero con el velo, sin arte ni nombre.
 		var card := CollectionCard.create()
 		card.setup(
-			fruit_data.id,
-			fruit_data.icon_emoji,
-			fruit_data.display_name,
+			recipe_data.id,
+			recipe_data.icon_emoji,
+			recipe_data.display_name,
 			stats_lbl,
 			"",
-			null
+			null,
+			&"Body"
 		)
 		card.set_locked(true)
 
-		var captured_id: String = str(fruit_id)
+		var captured_id: String = str(recipe_id)
 		card.action_button.pressed.connect(func():
-			_on_buy_fruit(captured_id, int(_fruit_rows[captured_id]["price"]))
+			_on_buy_recipe(captured_id, int(_recipe_rows[captured_id]["price"]))
 		)
 
-		fruit_items_container.add_child(card)
-		_fruit_rows[fruit_id] = {"card": card, "buy_btn": card.action_button, "price": price}
-		_sync_fruit_row(fruit_id)
+		recipe_items_container.add_child(card)
+		_recipe_rows[recipe_id] = {"card": card, "buy_btn": card.action_button, "price": price}
+		_sync_recipe_row(recipe_id)
 
-# Update a single fruit row (unlocked state) after purchase, no rebuild
-func _update_fruit_row(fruit_id: String) -> void:
-	_sync_fruit_row(fruit_id)
+# Actualiza una receta tras comprarla, sin reconstruir la tarjeta.
+func _update_recipe_row(recipe_id: String) -> void:
+	_sync_recipe_row(recipe_id)
 
-func _rebuild_weapon_shop(selected_ids: Array[String] = []) -> void:
-	var equipped_id: String = GameManager.run_equipped_knife
-	var knife_ids: Array[String] = StatsManager.get_sorted_knife_ids() if selected_ids.is_empty() else selected_ids
-	for knife_id in knife_ids:
-		var knife_data: KnifeData = StatsManager.knives_db[knife_id]
-		var is_unlocked: bool = GameManager.is_knife_unlocked_this_run(knife_id)
-		var is_equipped: bool = knife_id == equipped_id
-		var price: int = StatsManager.get_weapon_price(knife_data.price)
-		var prev_id: String = _get_prev_knife_id(str(knife_id))
-		var chain_ok: bool = prev_id == "" or GameManager.is_knife_unlocked_this_run(prev_id)
+func _rebuild_tool_shop(selected_ids: Array[String] = []) -> void:
+	var equipped_id: String = GameManager.run_equipped_tool
+	var tool_ids: Array[String] = StatsManager.get_sorted_tool_ids() if selected_ids.is_empty() else selected_ids
+	for tool_id in tool_ids:
+		var tool_data: ToolData = StatsManager.tools_db[tool_id]
+		var is_unlocked: bool = GameManager.is_tool_unlocked_this_run(tool_id)
+		var is_equipped: bool = tool_id == equipped_id
+		var price: int = StatsManager.get_tool_price(tool_data.price)
+		var prev_id: String = _get_prev_tool_id(str(tool_id))
+		var chain_ok: bool = prev_id == "" or GameManager.is_tool_unlocked_this_run(prev_id)
 
-		var stats_lbl: String = "Daño: " + UiTheme.format_stat(knife_data.damage)
+		var stats_lbl: String = "Potencia: " + UiTheme.format_stat(tool_data.damage)
 
-		# Cara = el arma; reverso = sus numeros y descripcion. Sin imagen propia
-		# todavia, el anverso usa el icono del arma.
+		# CollectionCard resuelve el arte por ID; el reverso conserva sus números.
 		var card: CollectionCard
-		if _weapon_rows.has(knife_id):
-			card = _weapon_rows[knife_id]["card"]
+		if _tool_rows.has(tool_id):
+			card = _tool_rows[tool_id]["card"]
 			card.reset_face()
 		else:
 			card = CollectionCard.create()
-			card.setup(knife_data.id, knife_data.icon, knife_data.name, stats_lbl, "", null)
-			card.action_button.pressed.connect(_on_weapon_action.bind(knife_id))
-			weapon_items_container.add_child(card)
-			_weapon_rows[knife_id] = {"card": card, "buy_btn": card.action_button}
+			card.setup(tool_data.id, tool_data.icon, tool_data.name, stats_lbl, "", null)
+			card.action_button.pressed.connect(_on_tool_action.bind(tool_id))
+			tool_items_container.add_child(card)
+			_tool_rows[tool_id] = {"card": card, "buy_btn": card.action_button}
 		# Los Arms ya desbloqueados (o en uso) se ven con normalidad; los de la
-		# cadena bloqueados conservan su hueco pero van velados.
-		card.set_locked(not is_unlocked)
+		# cadena bloqueados conservan su hueco pero van velados. Las comprables
+		# (cadena desbloqueada) voltean para mostrar su precio antes de comprar.
+		card.set_locked(not is_unlocked, "", chain_ok)
 
 		if is_equipped:
+			card.set_visual_state("equipped")
 			card.action_button.text = "EN USO"
 			card.action_button.disabled = true
 		elif is_unlocked:
+			card.set_visual_state("owned")
 			card.action_button.text = "EQUIPAR"
 			card.action_button.disabled = false
 		elif not chain_ok:
+			card.set_visual_state("locked")
 			card.action_button.text = "BLOQUEADO"
 			card.action_button.disabled = true
 		else:
 			card.action_button.text = "$" + UiTheme.format_money(float(price))
-			card.action_button.tooltip_text = "Desbloquear arma"
+			card.action_button.tooltip_text = "Adquirir herramienta"
 			card.action_button.disabled = GameManager.run_money < price
+			card.set_visual_state("buyable" if not card.action_button.disabled else "discovered")
 
-func _on_weapon_action(knife_id: String) -> void:
-	if GameManager.is_knife_unlocked_this_run(knife_id):
-		GameManager.set_equipped_knife_this_run(knife_id)
-		_rebuild_weapon_shop()
+func _on_tool_action(tool_id: String) -> void:
+	if GameManager.is_tool_unlocked_this_run(tool_id):
+		GameManager.set_equipped_tool_this_run(tool_id)
+		_rebuild_tool_shop()
+		UiTheme.pulse_label(_tool_rows[tool_id]["card"].get_node("Column/Face"), 1.04)
 		return
-	var previous_id := _get_prev_knife_id(knife_id)
-	if previous_id != "" and not GameManager.is_knife_unlocked_this_run(previous_id):
+	var previous_id := _get_prev_tool_id(tool_id)
+	if previous_id != "" and not GameManager.is_tool_unlocked_this_run(previous_id):
 		return
-	var knife_data: KnifeData = StatsManager.knives_db[knife_id]
-	if GameManager.spend_run_money(StatsManager.get_weapon_price(knife_data.price)):
-		GameManager.unlock_knife_this_run(knife_id)
-		GameManager.set_equipped_knife_this_run(knife_id)
+	var tool_data: ToolData = StatsManager.tools_db[tool_id]
+	if GameManager.spend_run_money(StatsManager.get_tool_price(tool_data.price)):
+		GameManager.unlock_tool_this_run(tool_id)
+		GameManager.set_equipped_tool_this_run(tool_id)
 		SoundManager.play_victory()
 		_refresh_ui()
-		_rebuild_weapon_shop()
+		_rebuild_tool_shop()
 
-func _on_buy_fruit(fruit_id: String, price: int) -> void:
-	var prev_id: String = _get_prev_fruit_id(fruit_id)
-	if prev_id != "" and not GameManager.is_fruit_unlocked_this_run(prev_id):
+func _on_buy_recipe(recipe_id: String, price: int) -> void:
+	var prev_id: String = _get_prev_recipe_id(recipe_id)
+	if prev_id != "" and not GameManager.is_recipe_unlocked_this_run(prev_id):
 		return
 	if GameManager.spend_run_money(price):
-		GameManager.unlock_fruit_this_run(fruit_id)
+		GameManager.unlock_recipe_this_run(recipe_id)
 		SoundManager.play_victory()
 		_refresh_ui()
-		_update_fruit_row(fruit_id)
+		_update_recipe_row(recipe_id)
+		UiTheme.pulse_label(_recipe_rows[recipe_id]["card"].get_node("Column/Face"), 1.04)
 		_refresh_affordability()
 
 func _on_buy_upgrade(upgrade_id: String) -> void:
@@ -354,3 +375,11 @@ func _on_close_pressed() -> void:
 	SoundManager.play_click()
 	visible = false
 	emit_signal("start_next_order_requested")
+
+# "Guardar y salir" desde el mercado: Main.gd persiste la run y sale al menú.
+# El estado ORDER_CLEARED_CARD_SELECT queda en la instantánea para que al
+# continuar se vuelva a abrir este mercado.
+func _on_save_and_quit_pressed() -> void:
+	SoundManager.play_click()
+	visible = false
+	emit_signal("save_and_quit_requested")

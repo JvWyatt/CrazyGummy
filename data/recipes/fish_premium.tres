@@ -1,0 +1,19 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/RecipeData.gd" id="1_recipe"]
+
+[resource]
+script = ExtResource("1_recipe")
+id = "fish_premium"
+display_name = "Pez +"
+icon_emoji = "🍬"
+max_hp = 12262.0
+min_reward = 512
+max_reward = 1024
+unlock_order = 11
+price = 2883
+base_color = Color(0.18, 0.68, 0.32, 1.0)
+inner_color = Color(0.92, 0.18, 0.28, 1.0)
+accent_color = Color(0.08, 0.35, 0.15, 1.0)
+radius = 38.0
+visual_family = "fish_premium"

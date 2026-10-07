@@ -6,7 +6,7 @@
 script = ExtResource("1_run")
 id = "money"
 name = "Negociación"
-desc = "+10% multiplicador de ganancias"
+desc = "+5% multiplicador de ganancias"
 base_cost = 5
 cost_mult = 1.5
 icon = "💰"

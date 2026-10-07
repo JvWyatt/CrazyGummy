@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1_run")
 id = "launch_rate"
-name = "Cosecha Veloz"
-desc = "+10% frecuencia de lanzamiento"
+name = "Ritmo"
+desc = "+5% ritmo de cubos"
 base_cost = 5
 cost_mult = 1.5
 icon = "🚀"

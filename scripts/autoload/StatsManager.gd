@@ -3,8 +3,8 @@ extends Node
 # StatsManager (Autoload / Singleton)
 # ----------------------------------------------------------------------------
 # Aquí viven las FÓRMULAS y el estado efímero de balance del juego. Los NÚMEROS
-# editables (armas, mejoras del mercado, prestigio y constantes globales) se
-# cargan desde res://data/ (ver data/catalog.tres, que indexa data/knives/,
+# editables (herramientas, mejoras del mercado, prestigio y constantes globales) se
+# cargan desde res://data/ (ver data/catalog.tres, que indexa data/tools/,
 # data/run_upgrades/ y data/prestige/, y data/balance.tres), así que se pueden
 # ajustar desde el inspector sin tocar código. Este archivo combina todo con las
 # fórmulas "get_final_...()" para dar el valor final que usa el resto del juego.
@@ -15,21 +15,21 @@ signal stats_updated
 # ----------------------------------------------------------------------------
 # CONSTANTES DE BALANCE GLOBAL
 # ----------------------------------------------------------------------------
-# Todas estas cifras (gasto de resistencia, fruta dorada, rebalance de
-# recompensas, daño crítico, frecuencias de lanzamiento, obstáculos y
+# Todas estas cifras (gasto de resistencia, gomita dorada, rebalance de
+# recompensas, potencia crítica, ritmo de cubos, obstáculos y
 # crecimiento de precios) se editan VISUALMENTE en res://data/balance.tres
 # (recurso BalanceData). Aquí solo se carga con respaldo por defecto.
 const BALANCE_PATH: String = "res://data/balance.tres"
 var balance: BalanceData = BalanceData.new()
 
 # ----------------------------------------------------------------------------
-# TABLA DE ARMAS (CUCHILLOS)
+# TABLA DE HERRAMIENTAS (ToolData es un nombre histórico)
 # ----------------------------------------------------------------------------
-# Cada arma vive en su propio .tres: res://data/knives/<id>.tres (recurso
-# KnifeData, editable en el inspector). Campos: damage (daño por golpe),
+# Cada herramienta vive en res://data/tools/<id>.tres (recurso
+# ToolData, editable en el inspector). Campo damage: potencia por golpe.
 # El coste de resistencia es global (ver BalanceData.base_energy_cost)
 # y price (costo para desbloquear durante la partida, ver RunUpgradeModal.gd).
-var knives_db: Dictionary = {}
+var tools_db: Dictionary = {}
 
 # ----------------------------------------------------------------------------
 # MEJORAS DEL MERCADO ("Mejoras" tab del RunUpgradeModal)
@@ -38,11 +38,11 @@ var knives_db: Dictionary = {}
 # el negocio (ver StatsManager.reset_run_stats() y GameManager.start_new_run()).
 # run_upgrade_levels guarda cuántas veces se compró cada mejora en esta partida.
 var run_upgrade_levels: Dictionary = {
-	"damage": 0,       # +5% damage
-	"energy_max": 0,   # +5% max resistance
-	"luck": 0,         # +0.5% grand sale chance
-	"money": 0,        # +5% money
-	"launch_rate": 0   # +10% launch frequency
+	"damage": 0,       # +1 daño bajo 10; +5% desde 10
+	"energy_max": 0,   # +5% resistencia máxima
+	"luck": 0,         # +0.1 p.p. de probabilidad de Jackpot
+	"money": 0,        # +5% ganancias
+	"launch_rate": 0   # +5% frecuencia de lanzamiento
 }
 
 # Definición de cada mejora: nombre, descripción, costo inicial (base_cost) y
@@ -53,14 +53,12 @@ var run_upgrade_levels: Dictionary = {
 # la fórmula (base_cost × cost_mult^nivel), sin tabla de valores fija.
 # Los base_cost están a la escala de lo que se gana por pedido: permiten
 # algunas compras los primeros días pero no llenar la tienda de golpe.
-# Balance: daño/resistencia/ganancias del mercado y de prestigio doblados
-# (mercado: 5% -> 10%; prestigio: 10% -> 20%), jackpot con su categoría propia
-# (+0.5% mercado / +1% prestigio, sin cambios), y frecuencia de frutas sin
-# cambios (mercado +10% / prestigio +25%).
+# Bonos por nivel: mercado +5%; prestigio +10%, incluido lanzamiento.
+# Jackpot suma puntos porcentuales: base 1%, mercado +0.1 p.p., prestigio +1 p.p.
 var run_upgrade_definitions: Dictionary = {}
 
 # Factor real acumulado al comprar daño. El mínimo se decide con el daño
-# actual de esa compra, no con la base del arma ni con un valor redondeado.
+# actual de esa compra, no con la base del herramienta ni con un valor redondeado.
 var run_damage_multiplier: float = 1.0
 
 # ----------------------------------------------------------------------------
@@ -78,21 +76,21 @@ var card_crit_chance: float = 0.0
 var card_launch_rate_multiplier: float = 1.0
 var card_reward_min_multiplier: float = 1.0
 var card_reward_max_multiplier: float = 1.0
-var card_fruit_hp_multiplier: float = 1.0
+var card_block_hardness_multiplier: float = 1.0
 var card_energy_cost_multiplier: float = 1.0
-var card_weapon_price_multiplier: float = 1.0
-var card_fruit_price_multiplier: float = 1.0
+var card_tool_price_multiplier: float = 1.0
+var card_recipe_price_multiplier: float = 1.0
 var card_upgrade_price_multiplier: float = 1.0
 var card_order_target_multiplier: float = 1.0
-var card_golden_fruit_chance: float = 0.0
+var card_golden_gummy_chance: float = 0.0
 # Bonus ADITIVO al multiplicador de racha (se suma al que dé la racha actual).
 # Cada comodín de racha suma su valor (Común +0.1, Rara +0.2, Épica +0.5, Legendaria +1.0).
 var card_streak_bonus: float = 0.0
-# Probabilidad adicional (sumada, 0.0 a 1.0) de ROMPER una piedra al golpearla
+# Probabilidad adicional (sumada, 0.0 a 1.0) de ROMPER una caramelo endurecido al golpearla
 # (desaparece, no penaliza). Épica +0.01 / Legendaria +0.03.
-var card_stone_break_chance: float = 0.0
-# Contador de comodines "primera piedra del día no quita resistencia" (Rara).
-var card_first_stone_free: int = 0
+var card_candy_break_chance: float = 0.0
+# Contador de comodines "primera caramelo endurecido del día no quita resistencia" (Rara).
+var card_first_candy_free: int = 0
 # Contador de comodines míticos "mantener la racha entre días".
 var card_streak_keep: int = 0
 # Bonus ADITIVO de puntos de prestigio por día completado (se suma al punto
@@ -103,13 +101,13 @@ var active_cards: Array = []
 
 # --- Caché de stats FINALES (hot paths) --------------------------------------
 # Se recalculan SOLO cuando cambian sus entradas, para que los getters que se
-# llaman todos los frames (lanzamiento de frutas) o ante cada corte (daño,
+# llaman todos los frames (lanzamiento de cubos) o ante cada golpe (daño,
 # energía, dinero, jackpot) sean O(1). Un valor guardado como -1 marca "sucio":
 # se recalcula a petición la próxima vez que se lea. Cualquier operación que
-# cambie mejoras del mercado, comodines, prestigio O el arma equipada debe
+# cambie mejoras del mercado, comodines, prestigio O el herramienta equipada debe
 # llamar a invalidar_stat_cache() antes de emitir stats_updated (ver
 # buy_run_upgrade, apply_card_upgrade, buy_prestige_upgrade, reset_run_stats,
-# SaveManager.reset_save y GameManager.set_equipped_knife_this_run).
+# SaveManager.reset_save y GameManager.set_equipped_tool_this_run).
 var _final_damage: float = -1.0
 var _final_max_energy: float = -1.0
 var _final_energy_cost: float = -1.0
@@ -147,7 +145,7 @@ func _load_balance() -> void:
 # OJO: no se listan carpetas con DirAccess porque al exportar los .tres se
 # empaquetan convertidos a binario bajo una ruta interna distinta y
 # "res://data/<carpeta>/" deja de existir: el listado salía vacío y el juego se
-# quedaba con los datos de respaldo (solo Puño y ninguna mejora).
+# quedaba con los datos de respaldo (solo Puños y ninguna mejora).
 func _load_game_catalog() -> GameCatalog:
 	var catalog := load(GameCatalog.CATALOG_PATH) as GameCatalog
 	if catalog == null:
@@ -155,7 +153,7 @@ func _load_game_catalog() -> GameCatalog:
 	return catalog
 
 # Indexa una lista de recursos de data/ por su campo "id".
-# Devuelve un Dictionary id -> Resource (KnifeData/RunUpgradeData/...).
+# Devuelve un Dictionary id -> Resource (ToolData/RunUpgradeData/...).
 func _index_by_id(items: Array) -> Dictionary:
 	var index: Dictionary = {}
 	for item in items:
@@ -170,26 +168,26 @@ func _index_by_id(items: Array) -> Dictionary:
 
 func _build_catalogs() -> void:
 	var catalog := _load_game_catalog()
-	knives_db = {}
+	tools_db = {}
 	run_upgrade_definitions = {}
 	prestige_definitions = {}
 	if catalog:
-		knives_db = _index_by_id(catalog.knives)
+		tools_db = _index_by_id(catalog.tools)
 		run_upgrade_definitions = _index_by_id(catalog.run_upgrades)
 		prestige_definitions = _index_by_id(catalog.prestige_upgrades)
-	# Blindaje: si el catálogo no llegó se usa el Puño por defecto para que el
-	# daño nunca sea 0.0 ni get_equipped_knife_data() dé null.
-	if knives_db.is_empty():
-		push_warning("StatsManager: knives_db vacía (revisar res://data/catalog.tres), usando el Puño por defecto")
-		var fist := KnifeData.new()
-		fist.id = "weapon_fist"
-		fist.name = "Puño"
+	# Blindaje: si el catálogo no llegó se usan los Puños por defecto para que el
+	# daño nunca sea 0.0 ni get_equipped_tool_data() dé null.
+	if tools_db.is_empty():
+		push_warning("StatsManager: tools_db vacía (revisar res://data/catalog.tres), usando los Puños por defecto")
+		var fist := ToolData.new()
+		fist.id = "tool_fists"
+		fist.name = "Puños"
 		fist.description = "La herramienta más básica para empezar."
 		fist.damage = 5.0
 		fist.unlock_order = 1
 		fist.price = 0
 		fist.icon = "👊"
-		knives_db["weapon_fist"] = fist
+		tools_db["tool_fists"] = fist
 
 # Se llama al empezar cada negocio nuevo (ver GameManager.start_new_run()).
 # Vuelve las mejoras y los bonos de comodines a su estado inicial, tal como
@@ -208,43 +206,97 @@ func reset_run_stats() -> void:
 	card_launch_rate_multiplier = 1.0
 	card_reward_min_multiplier = 1.0
 	card_reward_max_multiplier = 1.0
-	card_fruit_hp_multiplier = 1.0
+	card_block_hardness_multiplier = 1.0
 	card_energy_cost_multiplier = 1.0
-	card_weapon_price_multiplier = 1.0
-	card_fruit_price_multiplier = 1.0
+	card_tool_price_multiplier = 1.0
+	card_recipe_price_multiplier = 1.0
 	card_upgrade_price_multiplier = 1.0
 	card_order_target_multiplier = 1.0
-	card_golden_fruit_chance = 0.0
+	card_golden_gummy_chance = 0.0
 	card_streak_bonus = 0.0
-	card_stone_break_chance = 0.0
-	card_first_stone_free = 0
+	card_candy_break_chance = 0.0
+	card_first_candy_free = 0
 	card_streak_keep = 0
 	card_prestige_bonus = 0.0
 	active_cards.clear()
 	emit_signal("stats_updated")
 
-func get_equipped_knife_data() -> KnifeData:
-	var equipped_id: String = GameManager.run_equipped_knife
-	if knives_db.has(equipped_id):
-		return knives_db[equipped_id] as KnifeData
-	return knives_db["weapon_fist"] as KnifeData
+# --- Instantánea de stats de la run (Guardar y salir) -------------------------
+# Captura/restaura ÚNICAMENTE lo comprado/ganado durante el negocio en curso
+# (mejoras del mercado, multiplicadores y comodines activos). El prestigio
+# permanente se lee siempre de SaveManager y no se toca aquí.
 
-# Ids de TODAS las armas en orden de progresión (campo unlock_order de
-# KnifeData, ascendente; editable en res://data/knives/*.tres). Orden
-# DETERMINISTA, igual que FruitDatabase.get_sorted_fruit_ids(): NO usar
-# knives_db.keys(), cuyo orden de iteración no está garantizado.
-func get_sorted_knife_ids() -> Array[String]:
+const RUN_STAT_SCALARS: Array[String] = [
+	"run_damage_multiplier", "card_damage_multiplier", "card_energy_multiplier",
+	"card_money_multiplier", "card_jackpot_bonus", "card_jackpot_multiplier_bonus",
+	"card_crit_chance", "card_launch_rate_multiplier", "card_reward_min_multiplier",
+	"card_reward_max_multiplier", "card_block_hardness_multiplier", "card_energy_cost_multiplier",
+	"card_tool_price_multiplier", "card_recipe_price_multiplier", "card_upgrade_price_multiplier",
+	"card_order_target_multiplier", "card_golden_gummy_chance", "card_streak_bonus",
+	"card_candy_break_chance", "card_first_candy_free", "card_streak_keep", "card_prestige_bonus",
+]
+
+func capture_run_stats() -> Dictionary:
+	var snapshot: Dictionary = {"run_upgrade_levels": run_upgrade_levels.duplicate(), "active_cards": active_cards.duplicate(true)}
+	for key: String in RUN_STAT_SCALARS:
+		snapshot[key] = get(key)
+	return snapshot
+
+func restore_run_stats(snapshot: Dictionary) -> bool:
+	if not snapshot.has("run_upgrade_levels") or not snapshot.has("active_cards"):
+		push_error("restore_run_stats: instantánea sin stats de la run")
+		return false
+	for key: String in RUN_STAT_SCALARS:
+		if not snapshot.has(key):
+			push_error("restore_run_stats: falta la stat %s" % key)
+			return false
+		# Las únicas dos estadísticas de recuento (chances de comodín) son ints;
+		# el resto son multiplicadores float.
+		if key in ["card_first_candy_free", "card_streak_keep"]:
+			set(key, int(snapshot.get(key)))
+		else:
+			set(key, float(snapshot.get(key)))
+	# Complementa las mejoras desconocidas del futuro con nivel 0 para que la
+	# run continúe con la economía establecida.
+	var upgrades: Variant = snapshot.get("run_upgrade_levels")
+	if upgrades is Dictionary:
+		for upgrade_id in run_upgrade_definitions:
+			run_upgrade_levels[str(upgrade_id)] = int(float(upgrades.get(upgrade_id, 0)))
+	else:
+		push_error("restore_run_stats: run_upgrade_levels no es dict")
+		return false
+	var cards: Variant = snapshot.get("active_cards")
+	if cards is Array:
+		active_cards = cards.duplicate(true)
+	else:
+		push_error("restore_run_stats: active_cards no es array")
+		return false
+	invalidate_stat_cache()
+	emit_signal("stats_updated")
+	return true
+
+func get_equipped_tool_data() -> ToolData:
+	var equipped_id: String = GameManager.run_equipped_tool
+	if tools_db.has(equipped_id):
+		return tools_db[equipped_id] as ToolData
+	return tools_db["tool_fists"] as ToolData
+
+# Ids de TODAS las herramientas en orden de progresión (campo unlock_order de
+# ToolData, ascendente; editable en res://data/tools/*.tres). Orden
+# DETERMINISTA, igual que RecipeDatabase.get_sorted_recipe_ids(): NO usar
+# tools_db.keys(), cuyo orden de iteración no está garantizado.
+func get_sorted_tool_ids() -> Array[String]:
 	var ids: Array[String] = []
-	for knife_id in knives_db.keys():
-		ids.append(str(knife_id))
+	for tool_id in tools_db.keys():
+		ids.append(str(tool_id))
 	ids.sort_custom(func(a: String, b: String) -> bool:
-		var ka: KnifeData = knives_db[a] as KnifeData
-		var kb: KnifeData = knives_db[b] as KnifeData
+		var ka: ToolData = tools_db[a] as ToolData
+		var kb: ToolData = tools_db[b] as ToolData
 		return ka.unlock_order < kb.unlock_order
 	)
 	return ids
 
-# Daño final sin redondear: arma x mercado x comodines x prestigio.
+# Daño final sin redondear: herramienta x mercado x comodines x prestigio.
 # El mínimo del mercado se aplica exclusivamente al comprar (ver abajo).
 func get_final_damage() -> float:
 	if _final_damage < 0.0:
@@ -254,25 +306,25 @@ func get_final_damage() -> float:
 # Ver get_final_damage: el cálculo real del daño final (solo se ejecuta cuando
 # el valor está marcado como sucio).
 func _compute_final_damage() -> float:
-	var knife: KnifeData = get_equipped_knife_data()
-	return knife.damage * run_damage_multiplier * card_damage_multiplier * get_prestige_multiplier("experience", balance.prestige_damage_bonus_per_level)
+	var tool: ToolData = get_equipped_tool_data()
+	return tool.damage * run_damage_multiplier * card_damage_multiplier * get_prestige_multiplier("experience", balance.prestige_damage_bonus_per_level)
 
 # Prestigio consulta solo la base de una nueva partida y sus niveles guardados.
-# No depende del arma de la run, comodines, mejoras temporales ni cachés finales.
+# No depende del herramienta de la run, comodines, mejoras temporales ni cachés finales.
 func get_prestige_multiplier(upgrade_id: String, bonus: float) -> float:
 	return pow(1.0 + bonus, SaveManager.get_prestige_level(upgrade_id))
 
 func get_permanent_stat(upgrade_id: String) -> float:
 	match upgrade_id:
 		"experience":
-			var knife: KnifeData = knives_db["weapon_fist"] as KnifeData
-			return knife.damage * get_prestige_multiplier(upgrade_id, balance.prestige_damage_bonus_per_level)
+			var tool: ToolData = tools_db["tool_fists"] as ToolData
+			return tool.damage * get_prestige_multiplier(upgrade_id, balance.prestige_damage_bonus_per_level)
 		"expert_hand":
 			return balance.base_max_energy * get_prestige_multiplier(upgrade_id, balance.prestige_energy_bonus_per_level)
 		"good_provider":
 			return get_prestige_multiplier(upgrade_id, balance.prestige_money_bonus_per_level)
 		"good_fortune":
-			return SaveManager.get_prestige_level(upgrade_id) * balance.prestige_jackpot_bonus_per_level
+			return balance.base_jackpot_chance + SaveManager.get_prestige_level(upgrade_id) * balance.prestige_jackpot_bonus_per_level
 		"launch_speed":
 			return balance.base_launch_rate * get_prestige_multiplier(upgrade_id, balance.prestige_launch_bonus_per_level)
 	return 0.0
@@ -296,7 +348,7 @@ func _compute_final_max_energy() -> float:
 	var prestige_bonus: float = get_prestige_multiplier("expert_hand", balance.prestige_energy_bonus_per_level)
 	return base_energy * run_bonus * card_energy_multiplier * prestige_bonus
 
-# Resistencia por corte: estadística global, independiente del arma equipada.
+# Resistencia por golpe: estadística global, independiente de la herramienta.
 func get_final_energy_cost() -> float:
 	if _final_energy_cost < 0.0:
 		_final_energy_cost = _compute_final_energy_cost()
@@ -305,7 +357,7 @@ func get_final_energy_cost() -> float:
 func _compute_final_energy_cost() -> float:
 	return balance.base_energy_cost * balance.resistance_cost_multiplier * card_energy_cost_multiplier
 
-# Multiplicador final aplicado al dinero ganado por cada fruta cortada.
+# Multiplicador final aplicado al dinero ganado por cada gomita producida.
 func get_final_money_multiplier() -> float:
 	if _final_money_multiplier < 0.0:
 		_final_money_multiplier = _compute_final_money_multiplier()
@@ -316,7 +368,7 @@ func _compute_final_money_multiplier() -> float:
 	var prestige_bonus: float = get_prestige_multiplier("good_provider", balance.prestige_money_bonus_per_level)
 	return 1.0 * run_bonus * card_money_multiplier * prestige_bonus
 
-# Probabilidad extra (sumada, no multiplicada) de que una fruta sea "Gran Venta"/Jackpot.
+# Probabilidad total de "Gran Venta"/Jackpot: base más bonos aditivos.
 func get_final_jackpot_bonus() -> float:
 	if _final_jackpot_bonus < 0.0:
 		_final_jackpot_bonus = _compute_final_jackpot_bonus()
@@ -325,21 +377,21 @@ func get_final_jackpot_bonus() -> float:
 func _compute_final_jackpot_bonus() -> float:
 	var run_bonus: float = run_upgrade_levels["luck"] * balance.run_jackpot_bonus_per_level
 	var prestige_bonus: float = SaveManager.get_prestige_level("good_fortune") * balance.prestige_jackpot_bonus_per_level
-	return run_bonus + card_jackpot_bonus + prestige_bonus
+	return balance.base_jackpot_chance + run_bonus + card_jackpot_bonus + prestige_bonus
 
 func get_final_jackpot_multiplier() -> float:
 	return balance.base_jackpot_multiplier + card_jackpot_multiplier_bonus
 
-func get_golden_fruit_chance() -> float:
-	return balance.golden_fruit_chance + card_golden_fruit_chance
+func get_golden_gummy_chance() -> float:
+	return balance.golden_gummy_chance + card_golden_gummy_chance
 
 # Bonus ADITIVO acumulado por comodines de racha (p.ej. +0.5 con un Épico).
 func get_streak_bonus() -> float:
 	return card_streak_bonus
 
-# Probabilidad total (0.0 a 1.0) de romper una piedra al golpearla.
-func get_stone_break_chance() -> float:
-	return card_stone_break_chance
+# Probabilidad total (0.0 a 1.0) de romper una caramelo endurecido al golpearla.
+func get_candy_break_chance() -> float:
+	return card_candy_break_chance
 
 # Bonus de puntos de prestigio (reputación) por día completado: se suma al
 # punto base de 1 ⭐. Solo los comodines ACTIVOS pueden aumentarlo (ver
@@ -347,29 +399,29 @@ func get_stone_break_chance() -> float:
 func get_prestige_per_day_bonus() -> float:
 	return card_prestige_bonus
 
-# True si el jugador tiene al menos un comodín "primera piedra del día gratis".
-func has_first_stone_free() -> bool:
-	return card_first_stone_free > 0
+# True si el jugador tiene al menos un comodín "primera caramelo endurecido del día gratis".
+func has_first_candy_free() -> bool:
+	return card_first_candy_free > 0
 
 # True si el jugador tiene al menos un comodín mítico que mantiene la racha
 # entre días.
 func has_streak_keep() -> bool:
 	return card_streak_keep > 0
 
-func get_fruit_max_hp_multiplier() -> float:
-	return card_fruit_hp_multiplier
+func get_block_hardness_multiplier() -> float:
+	return card_block_hardness_multiplier
 
-func get_fruit_min_reward_multiplier() -> float:
+func get_recipe_min_reward_multiplier() -> float:
 	return card_reward_min_multiplier * balance.reward_rebalance_multiplier
 
-func get_fruit_max_reward_multiplier() -> float:
+func get_recipe_max_reward_multiplier() -> float:
 	return card_reward_max_multiplier * balance.reward_rebalance_multiplier
 
-func get_weapon_price(price: int) -> int:
-	return int(round(price * card_weapon_price_multiplier))
+func get_tool_price(price: int) -> int:
+	return int(round(price * card_tool_price_multiplier))
 
-func get_fruit_price(price: int) -> int:
-	return int(round(price * card_fruit_price_multiplier))
+func get_recipe_price(price: int) -> int:
+	return int(round(price * card_recipe_price_multiplier))
 
 func get_final_critical_chance() -> float:
 	return card_crit_chance
@@ -379,7 +431,7 @@ func get_final_critical_chance() -> float:
 func get_final_critical_multiplier() -> float:
 	return balance.critical_damage_multiplier
 
-# Frutas (o obstáculos) lanzadas por segundo.
+# Cubos lanzados por segundo; las caramelos endurecidos tienen su temporizador independiente.
 func get_final_launch_rate() -> float:
 	if _final_launch_rate < 0.0:
 		_final_launch_rate = _compute_final_launch_rate()
@@ -391,7 +443,7 @@ func _compute_final_launch_rate() -> float:
 	return balance.base_launch_rate * run_bonus * card_launch_rate_multiplier * prestige_bonus
 
 # Intervalo ALEATORIO (en segundos) entre obstáculos: 1 a 2 s. Independiente
-# de la frecuencia de frutas y de todas las mejoras/comodines/prestigio.
+# de la frecuencia de cubos y de todas las mejoras/comodines/prestigio.
 func get_obstacle_interval() -> float:
 	return randf_range(balance.obstacle_interval_min, balance.obstacle_interval_max)
 
@@ -475,32 +527,32 @@ func _apply_card_effect(effect_type: String, effect_value: float) -> void:
 			card_reward_min_multiplier += effect_value
 		"reward_max":
 			card_reward_max_multiplier += effect_value
-		"fruit_hp":
-			card_fruit_hp_multiplier += effect_value
+		"block_hardness":
+			card_block_hardness_multiplier += effect_value
 		"energy_cost":
 			card_energy_cost_multiplier += effect_value
-		"weapon_price":
-			card_weapon_price_multiplier += effect_value
-		"fruit_price":
-			card_fruit_price_multiplier += effect_value
+		"tool_price":
+			card_tool_price_multiplier += effect_value
+		"recipe_price":
+			card_recipe_price_multiplier += effect_value
 		"upgrade_price":
 			card_upgrade_price_multiplier += effect_value
 		"order_target":
 			card_order_target_multiplier += effect_value
-		"golden_fruit_chance":
-			card_golden_fruit_chance += effect_value
+		"golden_gummy_chance":
+			card_golden_gummy_chance += effect_value
 		"all_prices":
-			card_weapon_price_multiplier += effect_value
-			card_fruit_price_multiplier += effect_value
+			card_tool_price_multiplier += effect_value
+			card_recipe_price_multiplier += effect_value
 			card_upgrade_price_multiplier += effect_value
 		"streak_bonus":
 			card_streak_bonus += effect_value
-		"stone_break_chance":
-			card_stone_break_chance += effect_value
+		"candy_break_chance":
+			card_candy_break_chance += effect_value
 		"prestige":
 			card_prestige_bonus += effect_value
-		"first_stone_free":
-			card_first_stone_free += int(effect_value)
+		"first_candy_free":
+			card_first_candy_free += int(effect_value)
 		"streak_keep":
 			card_streak_keep += int(effect_value)
 

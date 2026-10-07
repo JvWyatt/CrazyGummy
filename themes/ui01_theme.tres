@@ -578,20 +578,20 @@ shadow_offset = Vector2(0, 2)
 [sub_resource type="Resource" id="Typography_body"]
 script = ExtResource("4_typography_style")
 font = ExtResource("2_roboto")
-color = Color(0.84, 0.9, 0.96, 1)
+color = Color(0.945, 0.918, 0.976, 1)
 
 [sub_resource type="Resource" id="Typography_subtitle"]
 script = ExtResource("4_typography_style")
 font = ExtResource("2_roboto")
 font_size = 22
-color = Color(0.94, 0.96, 1, 1)
+color = Color(0.973, 0.949, 1, 1)
 weight = 600
 
 [sub_resource type="Resource" id="Typography_title"]
 script = ExtResource("4_typography_style")
 font = ExtResource("1_display")
 font_size = 30
-color = Color(1, 0.88, 0.3, 1)
+color = Color(0.78, 0.965, 0.918, 1)
 outline_size = 1
 
 [resource]

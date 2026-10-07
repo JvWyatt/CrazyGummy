@@ -1,0 +1,19 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/RecipeData.gd" id="1_recipe"]
+
+[resource]
+script = ExtResource("1_recipe")
+id = "crocodile_premium"
+display_name = "Cocodrilo +"
+icon_emoji = "🍬"
+max_hp = 44266.0
+min_reward = 2048
+max_reward = 4096
+unlock_order = 13
+price = 6487
+base_color = Color(0.92, 0.62, 0.1, 1.0)
+inner_color = Color(1.0, 0.82, 0.3, 1.0)
+accent_color = Color(0.15, 0.65, 0.25, 1.0)
+radius = 29.0
+visual_family = "crocodile_premium"

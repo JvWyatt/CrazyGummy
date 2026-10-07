@@ -49,8 +49,6 @@ enum Presentation {
 }
 
 const CARD_SIZE: Vector2 = Vector2(180, 300)
-const COLOR_CARD_BG: Color = Color(0.09, 0.11, 0.19, 0.98)
-const COLOR_TEXT_DIM: Color = Color(0.7, 0.78, 0.88)
 # Grosor del marco de rareza y aire que queda entre el marco y la imagen.
 const CARD_FRAME: float = 2.0
 const CARD_PADDING: float = 6.0
@@ -60,9 +58,9 @@ const BUTTON_HEIGHT: float = 56.0
 # Margen que deja el contenido del reverso respecto al borde de la imagen.
 const BACK_TEXT_INSET: float = 6.0
 # Velo que se echa sobre la imagen del dorso para que el texto se lea encima.
-const COLOR_BACK_SCRIM: Color = Color(0.04, 0.05, 0.1, 0.62)
-const BACK_TEXTURE: Texture2D = preload("res://assets/card/back.png")
-const FRONT_ART_TEXTURE: Texture2D = preload("res://assets/card/Joker2.png")
+const COLOR_BACK_SCRIM: Color = Color(0.055, 0.04, 0.1, 0.78)
+const BACK_TEXTURE: Texture2D = preload("res://assets/crazy_gummy/ui/cards/back.svg")
+const FRONT_ART_TEXTURE: Texture2D = preload("res://assets/crazy_gummy/ui/cards/front.svg")
 
 # Pista que se añade al final de la descripción del reverso, según el modo.
 const HINT_PICK: String = "\n\n⟳ Toca para volver"
@@ -80,10 +78,7 @@ var _card_width: float = CARD_SIZE.x
 
 var _front: Control
 var _back: Control
-var _front_panel: PanelContainer
-var _back_panel: PanelContainer
 var _art_container: Control
-var _front_art: Control
 var _back_art_rect: TextureRect
 var _art_label: Label
 var _back_title: Label
@@ -121,12 +116,6 @@ static func _art_ratio() -> float:
 	if tex_size.x <= 0.0:
 		return 1.45
 	return tex_size.y / tex_size.x
-
-# Alto que ocuparía una carta de este ancho, sin contar el botón ELEGIR. La
-# galería lo usa para encajar la carta grande en el hueco disponible.
-static func height_for(card_width: float) -> float:
-	var inset: float = _card_inset()
-	return (card_width - inset * 2.0) * _art_ratio() + inset * 2.0
 
 # Tamaño del hueco donde va la ilustración, ya dentro del marco.
 func _art_size() -> Vector2:
@@ -199,6 +188,7 @@ func configure(card_data: Dictionary) -> void:
 	var image: Variant = card_data.get("image", FRONT_ART_TEXTURE)
 	if image != null:
 		_set_art_texture(_art_container, image)
+		_build_rarity_marks(_art_container, border)
 	if _presentation != Presentation.PICK:
 		tooltip_text = title_text + "\n" + desc_text
 	if _back_art_rect != null:
@@ -340,6 +330,10 @@ func _make_card_frame(border: Color) -> PanelContainer:
 	var inset := _card_inset()
 	var sb := UiTheme.card_style(border)
 	sb.border_color = border
+	var rank: int = maxi(CardDatabase.RARITIES.find(str(_data.get("rarity", "Común"))), 0)
+	sb.bg_color = sb.bg_color.lerp(border, 0.04 + rank * 0.02)
+	sb.shadow_color = Color(border.r, border.g, border.b, 0.10 + rank * 0.04)
+	sb.shadow_size = 4 + rank
 	sb.set_border_width_all(int(CARD_FRAME))
 	sb.content_margin_left = inset
 	sb.content_margin_right = inset
@@ -348,12 +342,36 @@ func _make_card_frame(border: Color) -> PanelContainer:
 	frame.add_theme_stylebox_override("panel", sb)
 	return frame
 
+func _build_rarity_marks(art: Control, color: Color) -> void:
+	var rarity: String = str(_data.get("rarity", "Común"))
+	var rank: int = maxi(CardDatabase.RARITIES.find(rarity), 0) + 1
+	var badge := Label.new()
+	badge.name = "RarityBadge"
+	badge.theme_type_variation = &"Body"
+	badge.text = rarity
+	badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	badge.add_theme_color_override("font_color", color.lightened(0.35))
+	art.add_child(badge)
+	badge.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	badge.offset_top = 12
+	var seal := Label.new()
+	seal.name = "RaritySeal"
+	seal.theme_type_variation = &"Body"
+	seal.text = "◆".repeat(rank)
+	seal.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	seal.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	seal.add_theme_color_override("font_color", color)
+	art.add_child(seal)
+	seal.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	seal.offset_top = -38
+	seal.offset_bottom = -8
+
 # El frontal es solo la carta y el botón: sin nombre de mejora ni ningún texto
 # encima. El nombre y la descripción se leen al girar la carta. Como el nombre
 # ya no se pinta, se deja como tooltip del arte (solo se ve al pasar el ratón
 # por encima; no añade texto a la carta).
 func _build_front_art(frame: Control) -> void:
-	_front_panel = frame as PanelContainer
 	var art := Control.new()
 	art.name = "ArtPanel"
 	art.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -363,7 +381,6 @@ func _build_front_art(frame: Control) -> void:
 	art.clip_contents = true
 	frame.add_child(art)
 	_art_container = art
-	_front_art = art
 
 	# Marcador de posición: si una carta llega sin imagen se ve su icono.
 	var art_vbox := VBoxContainer.new()
@@ -394,7 +411,6 @@ func _build_front_art(frame: Control) -> void:
 # custom_minimum_size. Sin eso el texto se mide a un carácter por línea y el
 # marco acabaría midiendo 74x2336 px, saliéndose de la pantalla.
 func _build_back_art(frame: Control) -> void:
-	_back_panel = frame as PanelContainer
 	var overlay := Control.new()
 	overlay.name = "Overlay"
 	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -472,6 +488,7 @@ func _make_choose_button() -> Button:
 	choose_btn.custom_minimum_size = Vector2(0, BUTTON_HEIGHT)
 	choose_btn.text = "ELEGIR"
 	choose_btn.theme_type_variation = &"PrimaryButton"
+	choose_btn.ready.connect(func(): UiTheme.add_hover_scale(choose_btn))
 	choose_btn.pressed.connect(func():
 		chosen.emit(_data)
 	)

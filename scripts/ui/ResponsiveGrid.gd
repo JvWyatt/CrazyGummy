@@ -26,7 +26,7 @@ extends Container
 # patron que documenta Godot para contenedores propios).
 #
 # Lo usan: tiendas de MEJORAS y de PRESTIGIO (ShopCard), coleccion de
-# frutas/armas (CollectionCard), galeria de comodines (CardFlipWidget en
+# recetas/herramientas (CollectionCard), galeria de comodines (CardFlipWidget en
 # miniatura) y las secciones de ESTADISTICAS (StatCard).
 #
 # REVERTIR el diseno en rejilla de cualquier sitio: sustituir este nodo por un
@@ -74,13 +74,6 @@ func _on_available_width_changed() -> void:
 		_last_usable_width = width
 		# El alto natural depende del número de columnas y de la proporción.
 		update_minimum_size()
-	queue_sort()
-
-# Recoloca las tarjetas. Llamarlo solo si se cambian las propiedades a mano en
-# tiempo de ejecucion; desde la escena se aplican antes de entrar en el arbol.
-func refresh() -> void:
-	update_minimum_size()
-	_rebind_children()
 	queue_sort()
 
 func _rebind_children() -> void:

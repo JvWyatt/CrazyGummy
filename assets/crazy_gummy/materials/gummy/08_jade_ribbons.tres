@@ -8,5 +8,5 @@ shader_parameter/secondary_color = Color(0.67, 0.94, 0.15, 1)
 shader_parameter/pattern_mode = 2
 shader_parameter/pattern_scale = 16.0
 shader_parameter/pattern_mix = 0.9
-shader_parameter/opacity = 0.91
-shader_parameter/surface_roughness = 0.23
+shader_parameter/opacity = 0.8
+shader_parameter/surface_roughness = 0.18

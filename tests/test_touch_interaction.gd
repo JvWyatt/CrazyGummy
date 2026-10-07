@@ -285,8 +285,8 @@ func _test_modal_scrolls_use_touch_script() -> void:
 		"res://scenes/ui/PrestigeShopModal.tscn": ["Panel/VBox/ScrollContainer"],
 		"res://scenes/ui/RunUpgradeModal.tscn": [
 			"Panel/VBox/TabContainer/Mejoras",
-			"Panel/VBox/TabContainer/Frutería",
-			"Panel/VBox/TabContainer/Armas",
+			"Panel/VBox/TabContainer/Recetas",
+			"Panel/VBox/TabContainer/Herramientas",
 		],
 		"res://scenes/ui/StatsModal.tscn": ["Panel/VBox/ScrollContainer"],
 		"res://scenes/ui/ProgressModal.tscn": ["Panel/VBox/ScrollContainer"],
@@ -300,7 +300,7 @@ func _test_modal_scrolls_use_touch_script() -> void:
 			_check(scroll != null and scroll.get_script() == touch_script,
 				"%s (%s): la lista tiene scroll táctil" % [path, node_path])
 		scene.free()
-	# AchievementsModal arma su lista en código: el script debe poder adjuntarse
+	# AchievementsModal herramienta su lista en código: el script debe poder adjuntarse
 	# en caliente y seguir recibiendo la entrada.
 	var dynamic_scroll := ScrollContainer.new()
 	dynamic_scroll.set_script(touch_script)

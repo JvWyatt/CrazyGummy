@@ -3,12 +3,12 @@ extends Control
 # CreditsModal: pantalla de CRÉDITOS que se muestra al completar el DÍA 100
 # (el objetivo del juego). Ofrece dos salidas:
 #   - "Continuar": seguir jugando para batir nuevos récords (día 101+).
-#   - "Salir": volver al menú principal.
+#   - "Salir": finalizar y registrar el negocio exitoso, mostrar resultados.
 # Al continuar se retoma el flujo normal de fin de día (comodín + tienda).
 # ============================================================================
 
 signal continue_requested   # -> Main: abrir el flujo normal de fin de día (día 100)
-signal exit_requested       # -> Main: volver al menú principal
+signal exit_requested       # -> Main: finalizar el negocio y mostrar resultados
 
 @onready var title_label: Label = $Panel/VBox/TitleLabel
 @onready var subtitle_label: Label = $Panel/VBox/SubtitleLabel

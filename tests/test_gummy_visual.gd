@@ -43,34 +43,35 @@ func _run() -> void:
 	game = root.get_node("GameManager")
 	root.get_node("SoundManager").is_sound_enabled = false
 	game.set_process(false)
-	game.fruit_destroyed_event.connect(_record_reward)
-	spawner = load("res://scenes/game/FruitSpawner.tscn").instantiate()
+	game.gummy_produced_event.connect(_record_reward)
+	spawner = load("res://scenes/game/BlockSpawner.tscn").instantiate()
 	root.add_child(spawner)
 	spawner.set_process(false)
 	viewport = SubViewport.new()
 	viewport.size = Vector2i(720, 1280)
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	root.add_child(viewport)
-	world = load("res://scenes/game/Fruit3DWorld.tscn").instantiate()
+	world = load("res://scenes/game/Projectile3DWorld.tscn").instantiate()
 	viewport.add_child(world)
-	world.setup_fruit_spawner(spawner)
+	world.setup_block_spawner(spawner)
 
 	for golden: bool in [false, true]:
 		game.start_new_run()
 		spawner.disable_spawning()
-		spawner._launch_fruit()
-		var fruit: Node = spawner.active_fruits[0]
-		fruit.is_golden = golden
-		var fd: Resource = fruit.fruit_data
-		var hp: float = fruit.current_hp
-		var logical_scale: Vector2 = fruit.scale
-		var hit_radius: float = fruit.collision_shape.shape.radius
-		_check(fd.id == "strawberry", "Spawn original de fresa")
-		_check(hp == fd.max_hp, "Vida de FruitData intacta")
-		_check(hit_radius == fd.radius, "Radio lógico intacto")
+		spawner._launch_block()
+		var block: Node = spawner.active_blocks[0]
+		block.is_golden = golden
+		var fd: Resource = block.recipe_data
+		var hp: float = block.current_hp
+		var logical_scale: Vector2 = block.scale
+		var hit_radius: float = block.collision_shape.shape.radius
+		_check(fd.id == "bear_classic", "Spawn original de fresa")
+		_check(hp == fd.max_hp, "Vida de RecipeData intacta")
+		_check(is_equal_approx(hit_radius, fd.radius), "Radio lógico coincide con el tamaño elegido")
+		_check(fd.radius * logical_scale.x >= 30.0 and fd.radius * logical_scale.x <= 90.0, "Cubo dentro del rango común de 0,5×–1,5×")
 		await process_frame
 		await process_frame
-		var mirror: Node3D = world._fruit_mirrors.get(fruit.get_instance_id())
+		var mirror: Node3D = world._block_mirrors.get(block.get_instance_id())
 		_check(is_instance_valid(mirror), "El spawner crea el espejo 3D")
 		var gummy := mirror.get_node("GummyVisual") as GummyVisual
 		_check(gummy != null, "La fresa usa el cubo")
@@ -79,22 +80,22 @@ func _run() -> void:
 		_check(gummy.appearance_material == expected_material if golden else gummy.appearance_material.shader == expected_material.shader and gummy.palette.has(gummy.current_color), "Oro fijo o color aleatorio con el acabado del tier")
 		_check((gummy.particles.material_override as StandardMaterial3D).albedo_color == gummy.current_color, "Material de ruptura del color actual")
 		_check((gummy.hit_particles.material_override as StandardMaterial3D).albedo_color == gummy.current_color, "Material de impacto del color actual")
-		_check(fruit.custom_hit_particles, "El cubo sustituye la salpicadura original roja")
-		gummy.set_color(Color(0.2, 0.55, 1.0))
+		_check(block.custom_hit_particles, "El cubo sustituye la salpicadura original roja")
+		gummy.set_color(Color("#32A8F0"))
 		var model := gummy.get_node("Cube/Model") as Node3D
 		var dimensions: Vector3 = mirror._content_aabb(model).size * model.scale
 		_check(is_equal_approx(maxf(dimensions.x, maxf(dimensions.y, dimensions.z)), fd.radius * logical_scale.x * mirror.visual_scale * 2.0), "Cubo normalizado al tamaño visual original")
 
 		# Comprobación visual centrada; el lanzamiento real ya se ha ejecutado.
-		fruit.ballistic.stop()
-		fruit.ballistic.velocity = Vector2(140.0, -200.0)
-		fruit.position = Vector2(360, 640)
-		mirror.set_pos2d(fruit.global_position)
+		block.ballistic.stop()
+		block.ballistic.velocity = Vector2(140.0, -200.0)
+		block.position = Vector2(360, 640)
+		mirror.set_pos2d(block.global_position)
 		mirror.set_process(false)
 		mirror.rotation = Vector3(0.2, 0.35, 0.0)
 		if not golden:
 			await _save_frame("spawn")
-		fruit.take_damage(1.0, false)
+		block.take_damage(1.0, false)
 		# Paso determinista para verificar el impacto sin depender del FPS.
 		gummy._hit_tween.custom_step(0.04)
 		_check(not gummy.cube.scale.is_equal_approx(Vector3.ONE), "Golpe real activa deformación 3D")
@@ -104,26 +105,26 @@ func _run() -> void:
 			await create_timer(0.08).timeout
 			await _save_frame("hit")
 		var hit_seed := gummy.hit_particles.seed
-		fruit.take_damage(1.0, true)
+		block.take_damage(1.0, true)
 		_check(gummy.hit_particles.emitting and gummy.hit_particles.seed != hit_seed, "Golpes consecutivos vuelven a emitir fragmentos")
 		await create_timer(0.4).timeout
 		_check(gummy.cube.scale.is_equal_approx(Vector3.ONE), "Golpes consecutivos recuperan la forma")
-		_check(fruit.current_hp == hp - 2.0, "Daño original exacto")
-		_check(fruit.scale == logical_scale and fruit.collision_shape.shape.radius == hit_radius, "Wobble conserva escala lógica y colisión")
+		_check(block.current_hp == hp - 2.0, "Daño original exacto")
+		_check(block.scale == logical_scale and block.collision_shape.shape.radius == hit_radius, "Wobble conserva escala lógica y colisión")
 		_check(mirror.scale == Vector3.ONE, "Wobble no escala el espejo")
 
 		# La misma tirada debe dar la misma recompensa con o sin presentación gummy.
-		var inherited_velocity: Vector2 = fruit.ballistic.velocity
-		var inherited_gravity: float = fruit.ballistic.gravity
-		var inherited_left: float = fruit.ballistic.wall_left
-		var inherited_right: float = fruit.ballistic.wall_right
+		var inherited_velocity: Vector2 = block.ballistic.velocity
+		var inherited_gravity: float = block.ballistic.gravity
+		var inherited_left: float = block.ballistic.wall_left
+		var inherited_right: float = block.ballistic.wall_right
 		# Reproduce un cubo tumbado y de espaldas justo antes de la ruptura.
 		mirror.rotation = Vector3(PI / 2.0, PI, PI / 2.0)
 		seed(91234)
-		fruit.take_damage(hp, false)
+		block.take_damage(hp, false)
 		var gummy_reward := last_reward
 		var gummy_jackpot := last_jackpot
-		_check(game.total_fruits_cut_run == 1, "Destrucción paga y registra exactamente una fresa")
+		_check(game.total_gummies_produced_run == 1, "Destrucción paga y registra exactamente una fresa")
 		_check(game.run_money == gummy_reward and game.order_progress == gummy_reward, "Dinero y progreso usan el flujo original")
 		await process_frame
 		await process_frame
@@ -150,7 +151,7 @@ func _run() -> void:
 
 		game.start_new_run()
 		spawner.disable_spawning()
-		var control: Node = load("res://scenes/game/Fruit.tscn").instantiate()
+		var control: Node = load("res://scenes/game/GummyBlock.tscn").instantiate()
 		root.add_child(control)
 		control.setup(fd)
 		control.is_golden = golden
@@ -161,10 +162,10 @@ func _run() -> void:
 		await process_frame
 
 	# La selección de paleta no consume el RNG global; cada material es local.
-	var database: Script = load("res://scripts/models/FruitDatabase.gd")
-	var other: Node3D = load("res://scenes/game/Fruit3D.tscn").instantiate()
+	var database: Script = load("res://scripts/models/RecipeDatabase.gd")
+	var other: Node3D = load("res://scenes/game/Projectile3D.tscn").instantiate()
 	world.add_child(other)
-	other.setup_fruit(database.create_fruit_resource("strawberry"), false)
+	other.setup_block(database.create_block_recipe("bear_classic"), false)
 	var visual := other.get_node("GummyVisual") as GummyVisual
 	var independent: GummyVisual = load("res://scenes/game/GummyVisual.tscn").instantiate()
 	world.add_child(independent)
@@ -179,17 +180,17 @@ func _run() -> void:
 	_check(independent.current_color == original_color and independent._materials[0].albedo_color == original_color, "Color de una instancia no modifica otra")
 	independent.queue_free()
 	other.queue_free()
-	var banana: Node3D = load("res://scenes/game/Fruit3D.tscn").instantiate()
-	world.add_child(banana)
-	banana.setup_fruit(database.create_fruit_resource("banana"), false)
-	_check(banana.has_node("GummyVisual") and not banana._broken_has_halves and banana.get_node("GummyVisual").appearance_material.resource_name == banana.gummy_material_palette.material_for(2, false).resource_name, "La banana usa el mismo cubo y su acabado visual con color aleatorio, sin cambiar su identificador")
-	banana.queue_free()
-	var rock: Node3D = load("res://scenes/game/Fruit3D.tscn").instantiate()
-	world.add_child(rock)
-	rock.setup_rock(40.0)
-	rock.play_hit()
-	_check(rock.is_rock and not rock.has_node("GummyVisual") and rock.scale == Vector3.ONE, "Roca conserva su representación")
-	rock.queue_free()
+	var ring_mirror: Node3D = load("res://scenes/game/Projectile3D.tscn").instantiate()
+	world.add_child(ring_mirror)
+	ring_mirror.setup_block(database.create_block_recipe("ring"), false)
+	_check(ring_mirror.has_node("GummyVisual") and not ring_mirror._broken_has_halves and ring_mirror.get_node("GummyVisual").appearance_material.resource_name == ring_mirror.gummy_material_palette.material_for(2, false).resource_name, "Aro Gummy usa el mismo cubo y su acabado visual con color aleatorio, sin cambiar su identificador")
+	ring_mirror.queue_free()
+	var candy: Node3D = load("res://scenes/game/Projectile3D.tscn").instantiate()
+	world.add_child(candy)
+	candy.setup_obstacle(40.0)
+	candy.play_hit()
+	_check(candy.is_obstacle and not candy.has_node("GummyVisual") and candy.scale == Vector3.ONE, "Roca conserva su representación")
+	candy.queue_free()
 	spawner.queue_free()
 	viewport.queue_free()
 	await process_frame

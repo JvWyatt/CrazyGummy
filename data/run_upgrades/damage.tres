@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1_run")
 id = "damage"
-name = "Afilado de Hoja"
-desc = "+10% daño"
+name = "Potencia"
+desc = "+1 potencia por debajo de 10; +5% desde 10"
 base_cost = 5
 cost_mult = 1.5
 icon = "💥"

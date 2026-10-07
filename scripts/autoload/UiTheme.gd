@@ -17,19 +17,40 @@ const THEME_PATH: String = "res://themes/ui01_theme.tres"
 # Colores de la paleta central (usados por code-hints como ConfirmDialog).
 # Por defecto replican el theme; siempre consulta _palette_color() si quieres
 # que el valor editable del .tres sea el que manda.
-const COLOR_BG: Color = Color(0.055, 0.071, 0.125)
-const COLOR_PANEL: Color = Color(0.078, 0.102, 0.18)
-const COLOR_ROW: Color = Color(0.102, 0.129, 0.22)
-const COLOR_BORDER: Color = Color(0.196, 0.251, 0.42)
+const COLOR_PANEL: Color = Color("#211f36")
+const COLOR_ROW: Color = Color("#2d2945")
+const COLOR_BORDER: Color = Color("#655c83")
 const COLOR_ACCENT: Color = Color(1.0, 0.835, 0.29)
-const COLOR_TEXT: Color = Color(0.9, 0.93, 0.98)
-const COLOR_TEXT_DIM: Color = Color(0.65, 0.72, 0.82)
-const COLOR_SUCCESS: Color = Color(0.31, 0.84, 0.62)
-const COLOR_DANGER: Color = Color(1.0, 0.35, 0.37)
+const COLOR_TEXT: Color = Color("#f8f2ff")
+const COLOR_TEXT_DIM: Color = Color("#c1b6d2")
+const COLOR_SUCCESS: Color = Color("#91e8b8")
+const COLOR_DANGER: Color = Color("#ff788d")
+const COLOR_ACTION: Color = Color("#7ce8d5")
 
 
 func _ready() -> void:
 	_install_theme()
+	get_tree().node_added.connect(_on_ui_node_added)
+
+func _on_ui_node_added(node: Node) -> void:
+	if node is Button:
+		_setup_button.call_deferred(weakref(node))
+	elif node is ColorRect and (node.name == "Dimmer" or (node.name == "Scrim" and node.get_parent().name != "Overlay")):
+		node.color = _palette_color("color_scrim", Color(0.04, 0.025, 0.075, 0.76))
+
+func _setup_button(reference: WeakRef) -> void:
+	var button := reference.get_ref() as Button
+	if is_instance_valid(button) and button.is_inside_tree():
+		add_hover_scale(button)
+
+func decorate_panel(panel: PanelContainer) -> void:
+	if panel.has_node("GummySurface"):
+		return
+	var surface := Control.new()
+	surface.name = "GummySurface"
+	surface.set_script(preload("res://scripts/ui/GummySurface.gd"))
+	surface.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(surface)
 
 # ---------------------------------------------------------------------------
 # Tema global
@@ -112,29 +133,14 @@ func _apply_theme_button(button: Button, theme_type: String, normal: Array, hove
 		button.add_theme_color_override("font_hover_color", font_color)
 		button.add_theme_color_override("font_pressed_color", font_color)
 
-# Estilo de tarjeta modal: fondo oscuro con borde brillante y sombra grande
-# (p.ej. el panel de ajustes del menú principal). Proviene del tipo
-# personalizado "ModalPanel" del theme (con respaldo en código).
-func apply_modal_panel(panel: PanelContainer) -> void:
-	if panel == null:
-		return
-	var theme := _current_theme()
-	var style: StyleBox = null
-	if theme and theme.has_stylebox("panel", "ModalPanel"):
-		style = theme.get_stylebox("panel", "ModalPanel")
-	if style == null:
-		style = _box_style(Color(0.09, 0.11, 0.19, 0.98), Color(0.45, 0.55, 0.85), 18, 10)
-		style.content_margin_left = 28
-		style.content_margin_right = 28
-		style.content_margin_top = 24
-		style.content_margin_bottom = 24
-	panel.add_theme_stylebox_override("panel", style)
-
 # Escala el botón al pasar el ratón encima para dar feedback táctil de
 # interacción. Recalcula el pivot si el tamaño cambia.
 func add_hover_scale(button: Control, amount: float = 0.0) -> void:
 	if button == null:
 		return
+	if button.has_meta("gummy_motion"):
+		return
+	button.set_meta("gummy_motion", true)
 	var hover_scale: float = amount if amount > 0.0 else _motion_value("hover_scale_percent", 103) / 100.0
 	var duration: float = _motion_value("hover_duration_ms", 120) / 1000.0
 	button.pivot_offset = button.size * 0.5
@@ -142,6 +148,8 @@ func add_hover_scale(button: Control, amount: float = 0.0) -> void:
 		button.pivot_offset = button.size * 0.5
 	)
 	button.mouse_entered.connect(func():
+		if button is BaseButton and button.disabled:
+			return
 		var tween := _replace_motion(button, &"hover_tween")
 		tween.tween_property(button, "scale", Vector2.ONE * hover_scale, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	)
@@ -149,6 +157,22 @@ func add_hover_scale(button: Control, amount: float = 0.0) -> void:
 		var tween := _replace_motion(button, &"hover_tween")
 		tween.tween_property(button, "scale", Vector2.ONE, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	)
+	if button is BaseButton:
+		button.button_down.connect(func():
+			var tween := _replace_motion(button, &"hover_tween")
+			tween.tween_property(button, "scale", Vector2(0.985, 0.96), 0.06).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		)
+		button.button_up.connect(func():
+			var tween := _replace_motion(button, &"hover_tween")
+			tween.tween_property(button, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		)
+		button.visibility_changed.connect(func():
+			if not button.is_visible_in_tree():
+				var previous: Tween = button.get_meta(&"hover_tween") as Tween if button.has_meta(&"hover_tween") else null
+				if previous and previous.is_valid():
+					previous.kill()
+				button.scale = Vector2.ONE
+		)
 
 # Tarjeta/panel genérico para la UI generada por código. Si cambias el borde o
 # el fondo por defecto, aquí se lee la paleta editable del theme.
@@ -185,10 +209,6 @@ func apply_card(panel: PanelContainer, border_color: Color = COLOR_BORDER, bg_co
 # El texto devuelto nunca se usa como entrada de los cálculos de estadísticas.
 func format_stat(value: float) -> String:
 	return "%.1f" % snappedf(value, 0.1)
-
-## Precisión visual del jackpot: no participa en los cálculos del juego.
-func format_jackpot(value: float, permanent: bool) -> String:
-	return ("%.2f" if permanent else "%.3f") % value
 
 # Dinero con un decimal y sufijos para cantidades grandes (1250 -> "1.3K").
 func format_money(value: float) -> String:
@@ -330,7 +350,7 @@ func golden_confetti(parent: Node, viewport_size: Vector2) -> void:
 	parent.add_child(particles)
 
 # Ráfaga de partículas de un solo color (p. ej. polvo gris al romper una
-# piedra). Se autolimpia solo.
+# caramelo endurecido). Se autolimpia solo.
 func dust_burst(parent: Node, global_position: Vector2, color: Color, amount: int = 24) -> void:
 	if parent == null or not is_instance_valid(parent):
 		return

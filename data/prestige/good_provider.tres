@@ -6,6 +6,6 @@
 script = ExtResource("1_prestige")
 id = "good_provider"
 name = "Buen Proveedor"
-desc = "+20% Multiplicador de Ganancias"
+desc = "+10% Multiplicador de Ganancias"
 cost = 3
 icon = "📦"

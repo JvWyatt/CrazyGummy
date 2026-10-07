@@ -6,6 +6,6 @@
 script = ExtResource("1_prestige")
 id = "launch_speed"
 name = "Ritmo Veloz"
-desc = "+25% Frecuencia de Lanzamiento"
+desc = "+10% ritmo de cubos"
 cost = 5
 icon = "🚀"

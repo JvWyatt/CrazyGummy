@@ -15,11 +15,11 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="Crazy Gummy"
-config/description="Crazy Fruit - Incremental 2D Fruit Cutting Mobile Game"
+config/description="Crazy Gummy — rompe cubos de gelatina, produce gomitas y desbloquea recetas."
 config/version="0.033"
 run/main_scene="res://scenes/Main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
-config/icon="res://assets/icon_app.png"
+config/icon="res://assets/crazy_gummy/icon.jpg"
 
 [audio]
 

@@ -1,15 +1,15 @@
 extends Node3D
 class_name GummyVisual
-# Presentación provisional compartida: no conoce vida, economía ni colisiones.
+# Presentación definitiva por receta: no conoce vida, economía ni colisiones.
 
 signal finished
 
 @export_group("Color de gelatina")
 @export var palette: Array[Color] = [
-	Color(0.95, 0.18, 0.3), Color(0.25, 0.85, 0.35),
-	Color(0.2, 0.55, 1.0), Color(1.0, 0.65, 0.12), Color(0.7, 0.3, 0.95)
+	Color("#F2384A"), Color("#FF8A24"), Color("#FFD83D"), Color("#72D94C"),
+	Color("#20E6C1"), Color("#32A8F0"), Color("#9B55E7"), Color("#FF65A3")
 ]
-@export var fallback_color: Color = Color(0.95, 0.18, 0.3)
+@export var fallback_color: Color = Color("#F2384A")
 @export var randomize_material_color: bool = true
 @export_range(0.0, 1.0, 0.01) var roughness: float = 0.25
 @export_group("Impacto")
@@ -47,8 +47,11 @@ var _radius: float = 0.0
 @onready var product_motion: Node2D = $ProductMotion
 @onready var product_ballistic: Ballistic = $ProductMotion/Ballistic
 
-func setup(radius: float, appearance: Material = null, golden: bool = false) -> void:
+func setup(radius: float, appearance: Material = null, golden: bool = false, recipe_id: String = "bear_classic") -> void:
 	_radius = radius
+	_install_model($Cube/Model, RecipeVisualLibrary.cube_scene(recipe_id))
+	_install_model($Product/Model, RecipeVisualLibrary.gummy_scene(recipe_id))
+	$Product/Model.rotation_degrees = RecipeVisualLibrary.product_orientation(recipe_id)
 	_visual_rng.randomize()
 	particles.seed = _visual_rng.randi()
 	hit_particles.seed = _visual_rng.randi()
@@ -72,14 +75,12 @@ func setup(radius: float, appearance: Material = null, golden: bool = false) -> 
 		elif appearance is BaseMaterial3D:
 			current_color = appearance.albedo_color
 		if randomize_material_color and not golden and not palette.is_empty():
-			var original_primary := current_color
-			var original_secondary: Variant = appearance.get_shader_parameter("secondary_color") if appearance is ShaderMaterial else null
-			set_color(palette[_visual_rng.randi_range(0, palette.size() - 1)])
-			if original_secondary is Color and appearance_material is ShaderMaterial:
-				# Conserva el contraste de los acabados bicolor, cambiando ambos tonos.
-				var hue_offset: float = original_secondary.h - original_primary.h
-				var secondary := Color.from_hsv(wrapf(current_color.h + hue_offset, 0.0, 1.0), original_secondary.s, original_secondary.v, original_secondary.a)
-				appearance_material.set_shader_parameter("secondary_color", secondary)
+			# Un índice uniforme: todos los colores tienen la misma probabilidad.
+			var color_index := _visual_rng.randi_range(0, palette.size() - 1)
+			set_color(palette[color_index])
+			if appearance_material is ShaderMaterial:
+				# Los patrones bicolor también usan la paleta fija, sin generar tonos HSV.
+				appearance_material.set_shader_parameter("secondary_color", palette[(color_index + palette.size() / 2) % palette.size()])
 		else:
 			_set_particle_color(current_color)
 		return
@@ -94,7 +95,7 @@ func setup(radius: float, appearance: Material = null, golden: bool = false) -> 
 func set_color(color: Color) -> void:
 	current_color = color
 	if appearance_material != null:
-		# El cubo y el osito comparten su copia, sin modificar el acabado base del tier.
+		# El cubo y la gomita comparten su copia, sin modificar el acabado base del tier.
 		appearance_material = appearance_material.duplicate()
 		if appearance_material is ShaderMaterial:
 			appearance_material.set_shader_parameter("primary_color", color)
@@ -183,12 +184,18 @@ func _prepare_materials(model: Node3D) -> void:
 			_materials.append(material)
 
 # Normaliza cada modelo una sola vez; el wobble actúa en su padre visual.
+func _install_model(container: Node3D, scene: PackedScene) -> void:
+	for child in container.get_children():
+		container.remove_child(child)
+		child.free()
+	container.add_child(scene.instantiate())
+
 func _fit_model(model: Node3D, radius: float) -> void:
 	var bounds := AABB()
 	var has_bounds := false
 	for node in model.find_children("*", "MeshInstance3D", true, false):
 		var mesh_instance := node as MeshInstance3D
-		var relative := model.global_transform.affine_inverse() * mesh_instance.global_transform
+		var relative: Transform3D = (model.get_parent() as Node3D).global_transform.affine_inverse() * mesh_instance.global_transform
 		var box: AABB = relative * mesh_instance.mesh.get_aabb()
 		bounds = bounds.merge(box) if has_bounds else box
 		has_bounds = true

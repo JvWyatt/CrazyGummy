@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="64" viewBox="0 0 640 64">
+<defs><linearGradient id="metal" x2=".5" y2="1"><stop stop-color="#fff3ff"/><stop offset=".4" stop-color="#cfbfe8"/><stop offset="1" stop-color="#716080"/></linearGradient><linearGradient id="grip" x2="0" y2="1"><stop stop-color="#a0ffe4"/><stop offset="1" stop-color="#398d8c"/></linearGradient></defs>
+<g stroke="#f3e9ff" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+<g fill="url(#grip)"><path d="M17 30V20q0-7 7-6V9q7-4 11 1 8-3 10 4 9 0 9 8v16L43 53H22L10 39q-5-12 7-9Z"/><path d="M24 14v14m11-18v17m10-13v14M23 37h19" fill="none"/></g>
+<g transform="translate(64) rotate(32 32 32)"><rect x="25" y="34" width="13" height="23" rx="5" fill="url(#grip)"/><path d="M25 35V9h17v13L35 35Z" fill="url(#metal)"/></g>
+<g transform="translate(128) rotate(32 32 32)"><rect x="25" y="21" width="11" height="35" rx="4" fill="url(#grip)"/><path d="M20 9h27v22Q32 36 20 22Z" fill="url(#metal)"/></g>
+<g transform="translate(192) rotate(32 32 32)"><rect x="27" y="25" width="10" height="31" rx="4" fill="url(#grip)"/><rect x="12" y="10" width="40" height="22" rx="8" fill="url(#metal)"/><path d="M19 16h23" fill="none"/></g>
+<g transform="translate(256) rotate(32 32 32)"><rect x="27" y="28" width="10" height="28" rx="4" fill="url(#grip)"/><rect x="10" y="8" width="44" height="26" rx="5" fill="url(#metal)"/><path d="M17 15h28m-28 7h28" fill="none"/></g>
+<g transform="translate(320) rotate(32 32 32)"><rect x="25" y="14" width="11" height="42" rx="4" fill="url(#grip)"/><path d="M19 8h35l-3 19-12 9-20-12Z" fill="url(#metal)"/><path d="m44 14-4 11" fill="none"/></g>
+<g transform="translate(384) rotate(32 32 32)"><rect x="27" y="28" width="10" height="28" rx="4" fill="url(#grip)"/><path d="M10 9h44v20l-6 6-5-6-6 6-5-6-6 6-5-6-5 6-6-6Z" fill="url(#metal)"/><path d="M18 16h27" fill="none"/></g>
+<g transform="translate(448) rotate(32 32 32)"><rect x="26" y="25" width="12" height="31" rx="4" fill="url(#grip)"/><rect x="10" y="9" width="44" height="19" rx="5" fill="url(#metal)"/><path d="M25 28v12m14-12v12M18 15h26" fill="none"/><rect x="21" y="40" width="22" height="7" rx="2" fill="url(#metal)"/></g>
+<g transform="translate(512) rotate(32 32 32)"><rect x="27" y="27" width="10" height="29" rx="4" fill="url(#grip)"/><path d="M8 11h48v21H8Z" fill="url(#metal)"/><rect x="24" y="9" width="16" height="25" rx="5" fill="url(#grip)"/><path d="M15 17v9m34-9v9" fill="none"/></g>
+<g transform="translate(576) rotate(32 32 32)"><rect x="26" y="28" width="12" height="28" rx="4" fill="url(#grip)"/><path d="M9 13 16 7l10 5 6-7 6 7 10-5 7 6v19H9Z" fill="url(#metal)"/><rect x="25" y="13" width="14" height="17" rx="5" fill="url(#grip)"/><path d="M17 20v6m30-6v6" fill="none"/></g>
+</g></svg>

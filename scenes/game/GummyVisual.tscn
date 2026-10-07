@@ -1,8 +1,6 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/game/GummyVisual.gd" id="1_script"]
-[ext_resource type="PackedScene" path="res://assets/crazy_gummy/cubes/cube.tscn" id="2_cube"]
-[ext_resource type="PackedScene" path="res://assets/crazy_gummy/gummies/bear.tscn" id="3_bear"]
 [ext_resource type="Script" path="res://scripts/game/Ballistic.gd" id="4_motion"]
 [ext_resource type="Mesh" path="res://assets/crazy_gummy/effects/fragment_mesh.tres" id="5_fragment"]
 
@@ -19,12 +17,12 @@ script = ExtResource("1_script")
 
 [node name="Cube" type="Node3D" parent="."]
 
-[node name="Model" parent="Cube" instance=ExtResource("2_cube")]
+[node name="Model" type="Node3D" parent="Cube"]
 
 [node name="Product" type="Node3D" parent="."]
 visible = false
 
-[node name="Model" parent="Product" instance=ExtResource("3_bear")]
+[node name="Model" type="Node3D" parent="Product"]
 
 [node name="Burst" type="CPUParticles3D" parent="."]
 emitting = false

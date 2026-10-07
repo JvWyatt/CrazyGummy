@@ -4,6 +4,5 @@
 resource_name = "12 · Cristal turquesa"
 shader = ExtResource("1")
 shader_parameter/primary_color = Color(0.04, 0.84, 0.98, 1)
-shader_parameter/opacity = 0.84
-shader_parameter/surface_roughness = 0.1
-shader_parameter/internal_glow = 0.14
+shader_parameter/opacity = 0.8
+shader_parameter/surface_roughness = 0.14

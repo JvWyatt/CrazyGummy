@@ -7,7 +7,7 @@ extends Node
 # resultados). Si buscas c\u00f3mo se pasa de una pantalla a otra, es aqu\u00ed.
 # ============================================================================
 
-const FRUIT3D_WORLD_SCENE: PackedScene = preload("res://scenes/game/Fruit3DWorld.tscn")
+const PROJECTILE3D_WORLD_SCENE: PackedScene = preload("res://scenes/game/Projectile3DWorld.tscn")
 
 # Diagnóstico de cierres SOLO en móvil (no reproducibles en escritorio): cada
 # cambio de pantalla y un latido periódico se vuelcan a user://crashlog.txt.
@@ -28,12 +28,13 @@ func _process(delta: float) -> void:
 
 @onready var main_menu: Control = $MainMenu
 @onready var game_world: Node2D = $GameWorld
+@onready var gummy_background: TextureRect = $GummyBackground
 @onready var goal_celebration: Node2D = $GoalCelebration
-@onready var fruit_spawner: Node2D = $GameWorld/FruitSpawner
+@onready var block_spawner: Node2D = $GameWorld/BlockSpawner
 @onready var swipe_controller: Node2D = $GameWorld/SwipeController
 @onready var hud: Control = $GameWorld/HUDLayer/HUD
-@onready var fruit3d_layer: SubViewportContainer = $Fruit3DLayer
-var _fruit3d_viewport: SubViewport
+@onready var projectile3d_layer: SubViewportContainer = $Projectile3DLayer
+var _projectile3d_viewport: SubViewport
 
 @onready var run_upgrade_modal: Control = $Modals/RunUpgradeModal
 @onready var stats_modal: Control = $Modals/StatsModal
@@ -46,8 +47,11 @@ var _fruit3d_viewport: SubViewport
 @onready var achievements_modal: Control = $Modals/AchievementsModal
 
 func _ready() -> void:
+	# El fondo sigue la visibilidad del gameplay y conserva anchors al viewport.
+	game_world.visibility_changed.connect(func(): gummy_background.visible = game_world.visible)
 	# Wire Main Menu events
 	main_menu.start_game_requested.connect(_on_start_game_requested)
+	main_menu.continue_run_requested.connect(_on_continue_run_requested)
 	main_menu.open_prestige_shop_requested.connect(_on_open_prestige_shop_requested)
 	main_menu.open_progress_requested.connect(_on_open_progress_requested)
 	main_menu.open_achievements_requested.connect(_on_open_achievements_requested)
@@ -57,10 +61,12 @@ func _ready() -> void:
 	hud.open_stats_requested.connect(_on_open_stats_requested)
 	hud.quit_run_requested.connect(_on_quit_run_requested)
 	hud.bonus_celebration_requested.connect(_on_bonus_celebration_requested)
+	hud.save_and_quit_requested.connect(_on_save_and_quit_requested)
 	stats_modal.open_cards_requested.connect(_on_open_active_cards_requested)
 
 	# Wire Modals events
 	run_upgrade_modal.open_stats_requested.connect(_on_open_stats_requested)
+	run_upgrade_modal.save_and_quit_requested.connect(_on_save_and_quit_requested)
 	card_selection_modal.card_chosen.connect(_on_card_chosen)
 	run_upgrade_modal.start_next_order_requested.connect(_on_start_next_order_from_shop)
 	stats_modal.modal_closed.connect(_on_stats_modal_closed)
@@ -77,24 +83,24 @@ func _ready() -> void:
 	GameManager.order_completed.connect(_on_order_completed)
 	GameManager.run_ended.connect(_on_run_ended)
 
-	_init_fruit3d_overlay()
+	_init_projectile3d_overlay()
 
 	# Initial state: Show Main Menu
 	_show_main_menu()
 
-# Instancia el mundo 3D de frutas dentro del SubViewport transparente, que
-# espeja las frutas/piedras 2D (ver Fruit3DWorld.gd). Puro visual.
-# Fruit3DLayer es hijo directo de Main (como Background/MainMenu), por lo que
+# Instancia el mundo 3D de cubos/gomitas en el SubViewport transparente,
+# que espeja cubos/caramelos endurecidos 2D (Projectile3DWorld.gd). Nombre/ruta históricos.
+# Projectile3DLayer es hijo directo de Main (como Background/MainMenu), por lo que
 # sus anchors abarcan el canvas completo (720x1280 de base, mas alto en moviles).
 # El SubViewportContainer tiene `stretch` activado: el contenedor redimensiona
 # el SubViewport a su propio rect cada frame, asi la camara/set_pos2d mapean 1:1
 # con cualquier alto real (no hay que fijar `size` a mano: se ignora + warning).
-func _init_fruit3d_overlay() -> void:
-	var world: Node3D = FRUIT3D_WORLD_SCENE.instantiate()
-	_fruit3d_viewport = fruit3d_layer.get_node("Viewport")
-	_fruit3d_viewport.add_child(world)
-	if world.has_method("setup_fruit_spawner"):
-		world.setup_fruit_spawner(fruit_spawner)
+func _init_projectile3d_overlay() -> void:
+	var world: Node3D = PROJECTILE3D_WORLD_SCENE.instantiate()
+	_projectile3d_viewport = projectile3d_layer.get_node("Viewport")
+	_projectile3d_viewport.add_child(world)
+	if world.has_method("setup_block_spawner"):
+		world.setup_block_spawner(block_spawner)
 
 func _current_screen_tag() -> String:
 	if main_menu.visible and (settings_panel_visible()):
@@ -127,8 +133,8 @@ func _show_main_menu() -> void:
 	SoundManager.play_menu_music()
 	game_world.visible = false
 	hud.visible = false
-	fruit_spawner.disable_spawning()
-	fruit_spawner.clear_all()
+	block_spawner.disable_spawning()
+	block_spawner.clear_all()
 	run_upgrade_modal.visible = false
 	stats_modal.visible = false
 	card_selection_modal.visible = false
@@ -143,9 +149,41 @@ func _on_start_game_requested() -> void:
 	main_menu.visible = false
 	game_world.visible = true
 	hud.visible = true
-	fruit_spawner.enable_spawning()
+	block_spawner.enable_spawning()
 	SoundManager.play_game_music()
 	GameManager.start_new_run()
+
+# "Guardar y salir" (pausa o mercado): persiste la run en curso y vuelve al menú
+# SIN terminarla. No cuenta como derrota (abandon_run_to_menu no emite
+# run_ended), así que "Continuar" puede recuperarla desde donde se quedó.
+func _on_save_and_quit_requested() -> void:
+	if not SaveManager.save_active_run(GameManager.capture_run_state()):
+		hud.pause_panel.show()
+		return
+	GameManager.abandon_run_to_menu()
+	_show_main_menu()
+
+# "Continuar": reaparece la run guardada exactamente donde estaba. Según el
+# estado persistido reanuda la ronda (PLAYING) o vuelve a abrir el mercado
+# (ORDER_CLEARED_CARD_SELECT).
+func _on_continue_run_requested() -> void:
+	var snapshot: Dictionary = SaveManager.get_active_run_snapshot()
+	if not GameManager.restore_run_state(snapshot):
+		push_error("Continuar falló: la partida guardada se descartó")
+		return
+	_clear_goal_celebration()
+	_log("continue", "day %d" % GameManager.current_order)
+	main_menu.visible = false
+	game_world.visible = true
+	hud.visible = true
+	block_spawner.enable_spawning()
+	block_spawner.clear_all()
+	SoundManager.play_game_music()
+	hud.pause_panel.hide()
+	if GameManager.current_state == GameManager.GameState.PLAYING:
+		GameManager.resume_turn()
+	elif GameManager.current_state == GameManager.GameState.ORDER_CLEARED_CARD_SELECT:
+		run_upgrade_modal.open_modal(GameManager.current_order)
 
 func _on_open_prestige_shop_requested() -> void:
 	_log("open", "prestige")
@@ -176,15 +214,15 @@ func _on_stats_modal_closed() -> void:
 		GameManager.resume_turn()
 
 func _on_quit_run_requested() -> void:
-	GameManager.end_run_failed()
+	GameManager.end_run()
 
 func _on_order_completed(order_num: int) -> void:
 	_clear_goal_celebration()
-	fruit_spawner.clear_all()
+	block_spawner.clear_all()
 	# Objetivo del juego: al completar el día de victoria (get_win_day()) se muestran los CRÉDITOS
 	# en lugar del flujo normal de fin de día. Desde ahí se puede continuar
 	# (nuevos récords) o salir al menú.
-	if order_num >= GameManager.get_win_day():
+	if order_num == GameManager.get_win_day():
 		credits_modal.open_modal(order_num)
 		return
 	# Resumen del día (conseguido/impuesto/ganancia) y comodines se muestran
@@ -194,10 +232,10 @@ func _on_order_completed(order_num: int) -> void:
 func _on_credits_continue_requested() -> void:
 	# Tras los créditos, retomar el flujo normal de fin de día (comodín + tienda)
 	# para seguir haciendo récords a partir del día 100.
-	card_selection_modal.open_modal(GameManager.get_win_day())
+	card_selection_modal.open_modal(GameManager.current_order)
 
 func _on_credits_exit_requested() -> void:
-	_show_main_menu()
+	GameManager.end_run()
 
 func _on_card_chosen(order_num: int) -> void:
 	# After choosing blessing card, open in-run upgrades shop between rounds
@@ -205,12 +243,18 @@ func _on_card_chosen(order_num: int) -> void:
 
 func _on_start_next_order_from_shop() -> void:
 	_clear_goal_celebration()
-	fruit_spawner.enable_spawning()
+	block_spawner.enable_spawning()
 	GameManager.advance_to_next_order()
 
 func _on_run_ended(summary: Dictionary) -> void:
 	_clear_goal_celebration()
-	fruit_spawner.clear_all()
+	block_spawner.clear_all()
+	credits_modal.hide()
+	card_selection_modal.hide()
+	run_upgrade_modal.hide()
+	stats_modal.hide()
+	cards_modal.hide()
+	hud.pause_panel.hide()
 	results_modal.open_modal(summary)
 
 func _on_return_to_menu_requested() -> void:

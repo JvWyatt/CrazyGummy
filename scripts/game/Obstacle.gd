@@ -1,29 +1,32 @@
 extends Area2D
 class_name Obstacle
+signal candy_broken(obstacle: Obstacle)
 # ============================================================================
-# Obstacle: objeto que NO es una fruta (piedra...).
+# Obstacle: Caramelo Endurecido. candy/candy son identificadores históricos.
 # ----------------------------------------------------------------------------
-# No se destruye al cortarlo y no da recompensa: golpearlo penaliza la
+# No da recompensa: golpearlo penaliza la
 # resistencia (ver GameManager.penalize_resistance). Tiene su propio cooldown
-# de impacto para evitar penalizaciones dobles dentro de un mismo corte.
-# Movimiento: usa el componente Ballistic (estilo Fruit Ninja).
+# de impacto para evitar penalizaciones dobles dentro de un mismo golpe.
+# Los comodines pueden romperlo; el resultado se llama Caramelo Endurecido Roto.
+# Movimiento: usa el componente Ballistic.
 # ============================================================================
 
 @export var radius: float = 35.0
 # Radio mínimo admisible: el setup enmarca el radio del lanzador por abajo.
 @export_range(1.0, 100.0, 1.0) var min_radius: float = 24.0
-# Cooldown entre golpes de un mismo corte (evita doble penalización).
+# Cooldown entre golpes de un mismo golpe (evita doble penalización).
 @export_range(0.01, 2.0, 0.01) var hit_cooldown_duration: float = 0.25
 # Velocidad máxima del giro visual (rango simétrico -max..max).
 @export_range(0.0, 6.0, 0.5) var max_spin_speed: float = 2.0
-# Colores de la piedra dibujada en _draw (editables en el inspector).
-@export var stone_body_color: Color = Color(0.45, 0.47, 0.52)
-@export var stone_outline_color: Color = Color(0.25, 0.27, 0.31)
-@export var stone_highlight_color: Color = Color(0.62, 0.65, 0.7)
+# Colores de la caramelo endurecido dibujada en _draw (editables en el inspector).
+@export var candy_body_color: Color = Color("#8b3047")
+@export var candy_outline_color: Color = Color("#3b192e")
+@export var candy_highlight_color: Color = Color("#efb4a5")
 
 var hit_cooldown: float = 0.0
 var spin_speed: float = 1.0
 var _flash_tween: Tween
+var custom_visual: bool = false
 
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var ballistic: Ballistic = $Ballistic
@@ -62,15 +65,19 @@ func on_hit() -> void:
 	_flash_tween.tween_property(self, "scale", Vector2(1.3, 0.85), 0.06)
 	_flash_tween.tween_property(self, "scale", Vector2(1.0, 1.0), 0.1)
 
-# Rompe la piedra (tiró el comodín de probabilidad): la deja invisible y la
+# Rompe la caramelo endurecido (tiró el comodín de probabilidad): la deja invisible y la
 # libera. No penaliza ni rompe la racha; el llamador gestiona el feedback.
-func break_stone() -> void:
+func break_candy() -> void:
+	candy_broken.emit(self)
 	set_process(false)
 	hide()
 	collision_shape.set_deferred("disabled", true)
 	queue_free()
 
 func _draw() -> void:
+	if custom_visual:
+		return
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE * 0.75)
 	var pts: PackedVector2Array = PackedVector2Array([
 		Vector2(-radius * 0.9, radius * 0.3),
 		Vector2(-radius * 0.6, -radius * 0.7),
@@ -80,9 +87,11 @@ func _draw() -> void:
 		Vector2(radius * 0.6, radius * 0.8),
 		Vector2(-radius * 0.2, radius * 0.9)
 	])
-	draw_colored_polygon(pts, stone_body_color)
-	draw_polyline(pts + PackedVector2Array([pts[0]]), stone_outline_color, 3.0)
-	draw_circle(Vector2(-radius * 0.25, -radius * 0.3), radius * 0.18, stone_highlight_color)
+	draw_colored_polygon(pts, candy_body_color)
+	draw_polyline(pts + PackedVector2Array([pts[0]]), candy_outline_color, 3.0)
+	draw_circle(Vector2(-radius * 0.25, -radius * 0.3), radius * 0.18, candy_highlight_color)
+	draw_arc(Vector2.ZERO, radius * 0.68, -0.7, 1.1, 16, candy_highlight_color, radius * 0.16, true)
+	draw_polyline(PackedVector2Array([Vector2(-radius * 0.5, 0), Vector2(0, -radius * 0.12), Vector2(radius * 0.18, radius * 0.15), Vector2(radius * 0.6, 0)]), candy_outline_color, 2.0, true)
 
 func _on_projectile_escaped() -> void:
 	queue_free()

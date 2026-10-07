@@ -127,7 +127,7 @@ func _next_tab() -> bool:
 	else:
 		header.text = str(info["icon"]) + " " + str(info["tag"]) + "  (" + str(cat_unlocked) + "/" + str(_current_defs.size()) + ")"
 	header.theme_type_variation = &"Subtitle"
-	header.modulate = Color(1.0, 0.85, 0.3)
+	header.modulate = UiTheme.COLOR_ACTION
 	vbox.add_child(header)
 
 	# Añadir la pestaña vacía (solo header) es barato; las filas llegan por lotes tras ella.
@@ -145,8 +145,9 @@ func _make_row(def: Dictionary) -> Control:
 	var prog: Dictionary = AchievementManager.get_progress(id)
 
 	var panel := PanelContainer.new()
-	var border_color: Color = Color(0.4, 0.78, 0.55) if unlocked else Color(0.28, 0.36, 0.58)
+	var border_color: Color = UiTheme.COLOR_SUCCESS if unlocked else UiTheme.COLOR_BORDER
 	UiTheme.apply_card(panel, border_color)
+	UiTheme.decorate_panel(panel)
 
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 4)
@@ -155,10 +156,12 @@ func _make_row(def: Dictionary) -> Control:
 	# Label para evitar el HBoxContainer anidado, que dispara un calc de layout
 	# extremadamente caro dentro de estas estructuras de scroll (ver 6.0).
 	var name_lbl := Label.new()
-	name_lbl.text = str(def.get("icon", "🏆")) + "  " + str(def.get("name", "")) + "   " + ("✅" if unlocked else "🔒")
+	name_lbl.text = str(def.get("name", ""))
+	if not id.is_empty():
+		name_lbl.text += " · " + ("COMPLETADO" if unlocked else "PENDIENTE")
 	name_lbl.theme_type_variation = &"CardTitle"
 	name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	name_lbl.modulate = Color(0.95, 0.95, 1.0) if unlocked else Color(0.72, 0.78, 0.88)
+	name_lbl.modulate = Color.WHITE if unlocked else UiTheme.COLOR_TEXT_DIM
 	vbox.add_child(name_lbl)
 
 	# Descripción.
@@ -179,7 +182,7 @@ func _make_row(def: Dictionary) -> Control:
 		var prog_lbl := Label.new()
 		prog_lbl.text = "Progreso: " + AchievementManager.get_progress_text(id)
 		prog_lbl.theme_type_variation = &"CaptionLabel"
-		prog_lbl.modulate = Color(0.55, 0.85, 0.7) if not unlocked else Color(0.4, 0.7, 0.55)
+		prog_lbl.modulate = UiTheme.COLOR_SUCCESS
 		vbox.add_child(prog_lbl)
 
 	panel.add_child(vbox)

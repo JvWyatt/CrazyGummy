@@ -61,6 +61,7 @@ func _run() -> void:
 	var game := root.get_node("GameManager")
 	var save := root.get_node("SaveManager")
 	game.start_new_run()
+	save.save_active_run(game.capture_run_state())
 	game.run_money = 123456789.0
 	save.save_data["prestige_points"] = 123456789.0
 	save.save_data["best_clients_in_day"] = 87
@@ -93,15 +94,15 @@ func _run() -> void:
 	upgrade_card.action_button.pressed.emit()
 	_check(game.run_money < before_money, "Comprar desde la tarjeta descuenta el precio")
 	_check(upgrade_card.current_stat_label.text != before_stat, "La compra actualiza el valor mostrado sin reconstruir la tarjeta")
-	# Un arrastre para navegar no debe voltear una fruta; un toque sí.
-	var fruit_card: Control = scenes[2].get_node("Panel/VBox/TabContainer/Frutería/ItemsGrid").get_child(0)
-	_gesture(fruit_card.get_node("Column/Face"), Vector2(20, 100))
-	_check(not fruit_card.get_node("Column/Face/Back").visible, "Arrastrar no voltea la colección")
-	_gesture(fruit_card.get_node("Column/Face"), Vector2(20, 20))
+	# Un arrastre para navegar no debe voltear una cubo; un toque sí.
+	var recipe_card: Control = scenes[2].get_node("Panel/VBox/TabContainer/Recetas/ItemsGrid").get_child(0)
+	_gesture(recipe_card.get_node("Column/Face"), Vector2(20, 100))
+	_check(not recipe_card.get_node("Column/Face/Back").visible, "Arrastrar no voltea la colección")
+	_gesture(recipe_card.get_node("Column/Face"), Vector2(20, 20))
 	await create_timer(0.35).timeout
-	_check(fruit_card.get_node("Column/Face/Back").visible, "Tocar muestra los datos de la fruta")
-	_check(fruit_card.get_node("Column/Face/Front/ArtBox/ArtTexture").texture == null, "La frutería utiliza emojis provisionales")
-	for card in scenes[2].get_node("Panel/VBox/TabContainer/Armas/ItemsGrid").get_children():
+	_check(recipe_card.get_node("Column/Face/Back").visible, "Tocar muestra los datos de la receta")
+	_check(recipe_card.get_node("Column/Face/Front/ArtBox/ArtTexture").texture.resource_path == "res://assets/crazy_gummy/ui/collection/bear_classic.png", "La receta muestra su ilustración proporcionada, no un icono provisional")
+	for card in scenes[2].get_node("Panel/VBox/TabContainer/Herramientas/ItemsGrid").get_children():
 		if card.is_queued_for_deletion():
 			continue
 		if card.is_locked:
@@ -166,7 +167,7 @@ func _run() -> void:
 				var telemetry: Control = scene.get_node("TopContainer/VBox/Telemetry")
 				var ring: Control = telemetry.get_node("StreakRing")
 				var rate: Control = telemetry.get_node("RatePanel")
-				_check(absf(ring.position.x - (telemetry.size.x - rate.position.x - rate.size.x)) <= 2.0, "Racha y frutas/s tienen extremos equilibrados")
+				_check(absf(ring.position.x - (telemetry.size.x - rate.position.x - rate.size.x)) <= 2.0, "Racha y cubos/s tienen extremos equilibrados")
 		# Comprueba también las pestañas que nacen ocultas.
 		var market: Control = scenes[2]
 		market.get_node("Panel/VBox/TabContainer").current_tab = 0
@@ -188,13 +189,13 @@ func _run() -> void:
 				for card in active_scroll.get_node("ItemsGrid").get_children():
 					if card.is_queued_for_deletion():
 						continue
-					_check(absf(card.size.x - card.size.y) <= 1.0, "Tarjeta de colección cuadrada 1:1")
 					var face: Control = card.get_node("Column/Face")
-					_check(card.get_node("Column/Face/Back").get_combined_minimum_size().y <= face.size.y + 1.0, "El nombre y los datos caben en la tarjeta cuadrada")
+					_check(absf(face.size.x - face.size.y) <= 1.0, "La tarjeta ocupa el área cuadrada del arte y su acción, sin espacio extra para el nombre")
+					_check(card.get_node("Column/Face/Back").get_combined_minimum_size().y <= face.size.y + 1.0, "El nombre y los datos caben en la tarjeta ilustrada")
 					for side in ["Front", "Back"]:
 						var content: Control = face.get_node(side)
 						if content.visible:
-							_check_bounds(content, face.get_global_transform() * Rect2(Vector2.ZERO, face.size), "Datos dentro de la tarjeta cuadrada")
+							_check_bounds(content, face.get_global_transform() * Rect2(Vector2.ZERO, face.size), "Datos dentro de la tarjeta ilustrada")
 				for original in original_sides:
 					original["card"].get_node("Column/Face/Front").visible = original["front"]
 					original["card"].get_node("Column/Face/Back").visible = original["back"]
@@ -237,7 +238,7 @@ func _run() -> void:
 			for scene in scenes:
 				scene.visible = true
 				if scene == market:
-					var tab_names := ["Mejoras", "Frutas", "Armas"]
+					var tab_names := ["Mejoras", "Recetas", "Herramientas"]
 					for tab in 3:
 						market.get_node("Panel/VBox/TabContainer").current_tab = tab
 						await _settle()

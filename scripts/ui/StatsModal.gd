@@ -49,31 +49,31 @@ func _refresh_ui() -> void:
 	var cost_en: float = StatsManager.get_final_energy_cost()
 	var jackpot_bonus: float = StatsManager.get_final_jackpot_bonus() * 100.0
 	var jackpot_multiplier: float = StatsManager.get_final_jackpot_multiplier()
-	var golden_fruit_chance: float = StatsManager.get_golden_fruit_chance() * 100.0
+	var golden_gummy_chance: float = StatsManager.get_golden_gummy_chance() * 100.0
 	var crit_chance: float = StatsManager.get_final_critical_chance() * 100.0
 	var crit_mult: float = StatsManager.get_final_critical_multiplier()
 
-	# Section 1: Combate y Corte
-	_add_stat("⚡", "Coste por corte", _number(cost_en), Color(0.9, 0.9, 0.9))
+	# Procesamiento: consumo de resistencia y golpes críticos.
+	_add_stat("⚡", "Coste por golpe", _number(cost_en), Color(0.9, 0.9, 0.9))
 	_add_stat("🎯", "Prob. de crítico", _number(crit_chance) + "%", Color(0.8, 0.5, 1.0))
-	_add_stat("💥", "Daño crítico", "x" + _number(crit_mult), Color(0.8, 0.5, 1.0))
+	_add_stat("💥", "Potencia crítica", "x" + _number(crit_mult), Color(0.8, 0.5, 1.0))
 
-	# Frutas
-	_add_stat("🍎", "Vida de frutas", "x" + _number(StatsManager.get_fruit_max_hp_multiplier()), Color(1.0, 0.5, 0.5))
+	# Cubos de gelatina.
+	_add_stat("🧊", "Dureza de cubos", "x" + _number(StatsManager.get_block_hardness_multiplier()), Color(1.0, 0.5, 0.5))
 
 	# Economía
-	_add_stat("📉", "Recompensa mínima", "x" + _number(StatsManager.get_fruit_min_reward_multiplier()), Color(1.0, 0.88, 0.3))
-	_add_stat("📈", "Recompensa máxima", "x" + _number(StatsManager.get_fruit_max_reward_multiplier()), Color(1.0, 0.88, 0.3))
+	_add_stat("📉", "Recompensa mínima", "x" + _number(StatsManager.get_recipe_min_reward_multiplier()), Color(1.0, 0.88, 0.3))
+	_add_stat("📈", "Recompensa máxima", "x" + _number(StatsManager.get_recipe_max_reward_multiplier()), Color(1.0, 0.88, 0.3))
 	_add_stat("💵", "Ganancias", "x" + _number(StatsManager.get_final_money_multiplier()), Color(1.0, 0.88, 0.3))
 
 	# Suerte
-	_add_stat("🎰", "Prob. de jackpot", _number(jackpot_bonus) + "%", Color(1.0, 0.75, 0.2))
-	_add_stat("🃏", "Premio jackpot", "x" + _number(jackpot_multiplier), Color(1.0, 0.75, 0.2))
-	_add_stat("🥇", "Prob. fruta dorada", _number(golden_fruit_chance) + "%", Color(1.0, 0.85, 0.2))
+	_add_stat("🎰", "Prob. de Jackpot", _number(jackpot_bonus) + "%", Color(1.0, 0.75, 0.2))
+	_add_stat("🃏", "Premio Jackpot", "x" + _number(jackpot_multiplier), Color(1.0, 0.75, 0.2))
+	_add_stat("🥇", "Prob. gomita dorada", _number(golden_gummy_chance) + "%", Color(1.0, 0.85, 0.2))
 
-	# Piedra
-	var stone_break: float = StatsManager.get_stone_break_chance()
-	_add_stat("🪨", "Prob. romper piedra", _number(stone_break * 100.0) + "%", Color(0.7, 0.75, 0.85))
+	# Caramelo endurecido (candy es el identificador histórico).
+	var candy_break: float = StatsManager.get_candy_break_chance()
+	_add_stat("🪨", "Prob. romper caramelo", _number(candy_break * 100.0) + "%", Color(0.7, 0.75, 0.85))
 	_add_cards_tile()
 
 # La duodécima casilla comparte el marco bento y abre la galería existente.

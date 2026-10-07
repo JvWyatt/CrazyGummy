@@ -1,5 +1,8 @@
 # Tipografía global — Title, Subtitle y Body
 
+> Especificación histórica de tipografía. El estado actual y la terminología
+> Crazy Gummy están en [la guía del proyecto](../../INFORME_GLOBAL.md).
+
 ## Un solo punto de edición
 
 Abre `themes/ui01_theme.tres` en el Inspector. En **Tipografía global** aparecen:

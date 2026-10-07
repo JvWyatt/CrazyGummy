@@ -20,6 +20,8 @@ static func create(border_color: Variant = null) -> ShopCard:
 
 func _ready() -> void:
 	_bind_nodes()
+	UiTheme.add_hover_scale(action_button)
+	UiTheme.decorate_panel(self)
 
 func _bind_nodes() -> void:
 	action_button = get_node("Content/ActionButton")
@@ -32,6 +34,7 @@ func _bind_nodes() -> void:
 # Rellena el contenido. subtitle puede ir vacio si la mejora no tiene niveles.
 func setup(icon: String, title: String, subtitle: String, desc: String, action_text: String, action_enabled: bool) -> void:
 	_icon_label.text = icon
+	preload("res://scripts/ui/GummyIcons.gd").replace_label(_icon_label, preload("res://scripts/ui/GummyIcons.gd").for_title(title))
 	name_label.text = title
 	subtitle_label.text = subtitle
 	subtitle_label.visible = not subtitle.is_empty()
@@ -45,24 +48,24 @@ func update_current_stat(stat_key: String) -> void:
 	var text: String = ""
 	match stat_key:
 		"experience":
-			text = "Daño: " + UiTheme.format_stat(StatsManager.get_permanent_stat(stat_key))
+			text = "Potencia: " + UiTheme.format_stat(StatsManager.get_permanent_stat(stat_key))
 		"expert_hand":
 			text = "Resistencia: " + UiTheme.format_stat(StatsManager.get_permanent_stat(stat_key))
 		"good_fortune":
-			text = "Jackpot: " + UiTheme.format_jackpot(StatsManager.get_permanent_stat(stat_key) * 100.0, true) + "%"
+			text = "Jackpot: " + UiTheme.format_stat(StatsManager.get_permanent_stat(stat_key) * 100.0) + "%"
 		"good_provider":
-			text = "Dinero: x" + UiTheme.format_stat(StatsManager.get_permanent_stat(stat_key))
+			text = "Ganancias: x" + UiTheme.format_stat(StatsManager.get_permanent_stat(stat_key))
 		"launch_speed":
-			text = "Velocidad: " + UiTheme.format_stat(StatsManager.get_permanent_stat(stat_key)) + " frutas/s"
+			text = "Ritmo: " + UiTheme.format_stat(StatsManager.get_permanent_stat(stat_key)) + " cubos/s"
 		"damage":
-			text = "Daño: " + UiTheme.format_stat(StatsManager.get_final_damage())
+			text = "Potencia: " + UiTheme.format_stat(StatsManager.get_final_damage())
 		"energy_max":
 			text = "Resistencia: " + UiTheme.format_stat(StatsManager.get_final_max_energy())
 		"luck":
-			text = "Jackpot: " + UiTheme.format_jackpot(StatsManager.get_final_jackpot_bonus() * 100.0, false) + "%"
+			text = "Jackpot: " + UiTheme.format_stat(StatsManager.get_final_jackpot_bonus() * 100.0) + "%"
 		"money":
-			text = "Dinero: x" + UiTheme.format_stat(StatsManager.get_final_money_multiplier())
+			text = "Ganancias: x" + UiTheme.format_stat(StatsManager.get_final_money_multiplier())
 		"launch_rate":
-			text = "Velocidad: " + UiTheme.format_stat(StatsManager.get_final_launch_rate()) + " frutas/s"
+			text = "Ritmo: " + UiTheme.format_stat(StatsManager.get_final_launch_rate()) + " cubos/s"
 	current_stat_label.text = text
 	current_stat_label.visible = not text.is_empty()

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ctmisjsdikrjn" path="res://scripts/Main.gd" id="1_main"]
 [ext_resource type="PackedScene" uid="uid://dg03k36pm1y8a" path="res://scenes/ui/MainMenu.tscn" id="2_menu"]
-[ext_resource type="PackedScene" uid="uid://c7m5p23s78va1" path="res://scenes/game/FruitSpawner.tscn" id="3_spawner"]
+[ext_resource type="PackedScene" uid="uid://c7m5p23s78va1" path="res://scenes/game/BlockSpawner.tscn" id="3_spawner"]
 [ext_resource type="PackedScene" uid="uid://bv83nas24w8q1" path="res://scenes/game/SwipeController.tscn" id="4_swipe"]
 [ext_resource type="PackedScene" uid="uid://dm28ka4n2e7k0" path="res://scenes/ui/HUD.tscn" id="5_hud"]
 [ext_resource type="PackedScene" uid="uid://df72mk4w870p1" path="res://scenes/ui/RunUpgradeModal.tscn" id="6_run_up"]
@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/CreditsModal.tscn" id="15_credits"]
 [ext_resource type="PackedScene" path="res://scenes/ui/AchievementsModal.tscn" id="16_ach"]
 [ext_resource type="Script" path="res://scripts/ui/SafeAreaLayout.gd" id="17_safe"]
+[ext_resource type="Texture2D" path="res://assets/crazy_gummy/ui/backgrounds/gameplay.svg" id="18_gummy_bg"]
 
 [node name="Main" type="Node" unique_id=1186560382]
 script = ExtResource("1_main")
@@ -36,7 +37,21 @@ z_index = -1
 
 [node name="GameWorld" type="Node2D" parent="." unique_id=2110451518]
 
-[node name="FruitSpawner" parent="GameWorld" unique_id=727793212 instance=ExtResource("3_spawner")]
+[node name="GummyBackground" type="TextureRect" parent="."]
+visible = false
+z_index = -2
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture_filter = 2
+texture = ExtResource("18_gummy_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="BlockSpawner" parent="GameWorld" unique_id=727793212 instance=ExtResource("3_spawner")]
 play_bounds = Rect2(10, 240, 700, 900)
 
 [node name="SwipeController" parent="GameWorld" unique_id=2106919530 instance=ExtResource("4_swipe")]
@@ -45,7 +60,7 @@ play_bounds = Rect2(10, 240, 700, 900)
 
 [node name="HUD" parent="GameWorld/HUDLayer" unique_id=239276739 instance=ExtResource("5_hud")]
 
-[node name="Fruit3DLayer" type="SubViewportContainer" parent="." unique_id=2119602039]
+[node name="Projectile3DLayer" type="SubViewportContainer" parent="." unique_id=2119602039]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -54,7 +69,7 @@ grow_vertical = 2
 mouse_filter = 2
 stretch = true
 
-[node name="Viewport" type="SubViewport" parent="Fruit3DLayer" unique_id=306792396]
+[node name="Viewport" type="SubViewport" parent="Projectile3DLayer" unique_id=306792396]
 own_world_3d = true
 transparent_bg = true
 handle_input_locally = false

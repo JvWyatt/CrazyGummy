@@ -6,7 +6,7 @@
 script = ExtResource("1_run")
 id = "energy_max"
 name = "Resistencia"
-desc = "+10% resistencia máxima"
+desc = "+5% resistencia máxima"
 base_cost = 5
 cost_mult = 1.5
 icon = "⚡"

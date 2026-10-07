@@ -4,5 +4,5 @@
 resource_name = "02 · Miel brillante"
 shader = ExtResource("1")
 shader_parameter/primary_color = Color(1, 0.72, 0.08, 1)
-shader_parameter/opacity = 0.88
-shader_parameter/surface_roughness = 0.16
+shader_parameter/opacity = 0.8
+shader_parameter/surface_roughness = 0.15

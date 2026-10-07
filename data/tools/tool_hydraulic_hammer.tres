@@ -1,0 +1,13 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/ToolData.gd" id="1_tool"]
+
+[resource]
+script = ExtResource("1_tool")
+id = "tool_hydraulic_hammer"
+name = "Martillo Hidráulico"
+description = "Un golpe pesado para romper gelatina."
+damage = 70.0
+unlock_order = 8
+price = 2767063
+icon = "🪓"

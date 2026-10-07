@@ -6,6 +6,6 @@
 script = ExtResource("1_prestige")
 id = "experience"
 name = "Maestría"
-desc = "+20% Daño inicial"
+desc = "+10% potencia inicial"
 cost = 3
 icon = "⚔️"

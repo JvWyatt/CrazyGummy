@@ -13,6 +13,7 @@ static func create() -> StatCard:
 
 func _ready() -> void:
 	_bind_nodes()
+	UiTheme.decorate_panel(self)
 
 func _bind_nodes() -> void:
 	value_label = get_node("Content/ValueLabel")
@@ -22,6 +23,9 @@ func _bind_nodes() -> void:
 func setup(icon: String, title: String, value: String, _value_color: Color) -> void:
 	_icon_label.text = icon
 	_icon_label.visible = not icon.is_empty()
+	get_node("Content/Header/IconHolder").visible = not icon.is_empty()
+	if not icon.is_empty():
+		preload("res://scripts/ui/GummyIcons.gd").replace_label(_icon_label, preload("res://scripts/ui/GummyIcons.gd").for_title(title))
 	_name_label.text = title
 	value_label.text = value
 	tooltip_text = title + "\n" + value

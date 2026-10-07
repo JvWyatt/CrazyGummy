@@ -32,11 +32,11 @@ func _refresh_ui() -> void:
 
 		var effect_text: String = ""
 		match key:
-			"experience": effect_text = "+" + UiTheme.format_stat(StatsManager.balance.prestige_damage_bonus_per_level * 100.0) + "% Daño"
+			"experience": effect_text = "+" + UiTheme.format_stat(StatsManager.balance.prestige_damage_bonus_per_level * 100.0) + "% Potencia"
 			"expert_hand": effect_text = "+" + UiTheme.format_stat(StatsManager.balance.prestige_energy_bonus_per_level * 100.0) + "% Resistencia"
-			"good_provider": effect_text = "+" + UiTheme.format_stat(StatsManager.balance.prestige_money_bonus_per_level * 100.0) + "% Dinero"
-			"good_fortune": effect_text = "+" + UiTheme.format_jackpot(StatsManager.balance.prestige_jackpot_bonus_per_level * 100.0, true) + " p.p. Jackpot"
-			"launch_speed": effect_text = "+" + UiTheme.format_stat(StatsManager.balance.prestige_launch_bonus_per_level * 100.0) + "% Velocidad"
+			"good_provider": effect_text = "+" + UiTheme.format_stat(StatsManager.balance.prestige_money_bonus_per_level * 100.0) + "% Ganancias"
+			"good_fortune": effect_text = "+" + UiTheme.format_stat(StatsManager.balance.prestige_jackpot_bonus_per_level * 100.0) + " p.p. Jackpot"
+			"launch_speed": effect_text = "+" + UiTheme.format_stat(StatsManager.balance.prestige_launch_bonus_per_level * 100.0) + "% Ritmo"
 
 		# Tarjeta compacta del grid (scripts/ui/ShopCard.gd). Todo el diseno de
 		# la tarjeta vive ahi; aqui solo se conectan los datos y la compra.
@@ -45,6 +45,8 @@ func _refresh_ui() -> void:
 			card = _upgrade_cards[key]
 		else:
 			card = ShopCard.create()
+			card.theme_type_variation = &"PremiumPanel"
+			card.action_button.theme_type_variation = &"PremiumButton"
 			_upgrade_cards[key] = card
 			var captured_key: String = str(key)
 			card.action_button.pressed.connect(func():

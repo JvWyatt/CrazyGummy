@@ -2,8 +2,8 @@ extends Control
 # ============================================================================
 # HUD: la interfaz que se ve MIENTRAS juegas (barra de dinero/meta del día
 # superior, barrita de racha a la derecha bajo el dinero, anillo circular de
-# racha, panel de frutas/s y multiplicador, arma equipada y botones de
-# Stats/Pausa). Solo muestra datos que vienen de GameManager/StatsManager; no
+# racha, panel de cubos/s y multiplicador y botones de
+# Datos/Pausa). Solo muestra datos que vienen de GameManager/StatsManager; no
 # decide reglas.
 #
 # El botón de pausa abre el PausePanel: pausa la ronda (pause_turn), permite
@@ -20,12 +20,12 @@ extends Control
 signal open_stats_requested
 signal quit_run_requested
 signal bonus_celebration_requested
+signal save_and_quit_requested
 
 @onready var money_label: Label = $TopContainer/VBox/MoneyBar/MoneyLabel
 @onready var money_bar: ProgressBar = $TopContainer/VBox/MoneyBar
 @onready var day_label: Label = $TopContainer/VBox/TopHBox/DayLabel
 @onready var status_info_label: Label = $TopContainer/VBox/TopHBox/StatusInfoLabel
-@onready var knife_label: Label = $BottomContainer/KnifeInfoLabel
 @onready var stats_btn: Button = $BottomContainer/ButtonsHBox/StatsButton
 @onready var pause_btn: Button = $BottomContainer/ButtonsHBox/PauseButton
 @onready var pause_panel: Control = $PausePanel
@@ -34,6 +34,7 @@ signal bonus_celebration_requested
 @onready var continue_btn: Button = $PausePanel/Card/PauseVBox/ContinueButton
 @onready var settings_btn: Button = $PausePanel/Card/PauseVBox/SettingsButton
 @onready var pause_quit_btn: Button = $PausePanel/Card/PauseVBox/PauseQuitButton
+@onready var save_and_quit_btn: Button = $PausePanel/Card/PauseVBox/SaveExitButton
 @onready var pause_vbox: VBoxContainer = $PausePanel/Card/PauseVBox
 @onready var settings_vbox: VBoxContainer = $PausePanel/Card/SettingsVBox
 @onready var settings_section: SettingsSection = $PausePanel/Card/SettingsVBox/SettingsSection
@@ -54,26 +55,32 @@ signal bonus_celebration_requested
 
 # Pool de frases que se muestran en el centro al alcanzar un hito de racha.
 const STREAK_PHRASES: Array[String] = [
-	"¡YA PICASTE!",
-	"¡BUEN CORTE!",
-	"¡ESTO YA ES ENSALADA!",
+	"¡DULCE RACHA!",
+	"¡BUEN IMPACTO!",
+	"¡GOMITAS A LO GRANDE!",
 	"¿TÚ DUERMES?",
 	"¡DEJA ALGO PARA MAÑANA!",
-	"¡FRUTALMENTE INSANO!",
+	"¡LOCURA GELATINOSA!",
 ]
 var _milestone_tween: Tween
 # Último multiplicador de racha mostrado, para saber si acaba de activarse o de
-# subir (streak_changed llega en cada corte de fruta con el valor actual).
+# subir (streak_changed llega en cada gomita producida con el valor actual).
 var _last_streak_multiplier: float = 1.0
 
 func _ready() -> void:
+	UiTheme.decorate_panel($TopContainer)
+	UiTheme.decorate_panel(ach_toast)
+	var icons := preload("res://scripts/ui/GummyIcons.gd")
+	stats_btn.icon = icons.texture("stats")
+	stats_btn.expand_icon = true
+	stats_btn.text = "Datos"
+	pause_btn.text = "Ⅱ Pausa"
 	GameManager.money_changed.connect(_on_money_changed)
 	GameManager.order_progress_changed.connect(_on_order_progress_changed)
 	GameManager.order_goal_reached.connect(_on_order_goal_reached)
 	GameManager.energy_changed.connect(_on_energy_changed)
 	GameManager.round_time_changed.connect(_on_round_time_changed)
 	StatsManager.stats_updated.connect(_on_stats_updated)
-	GameManager.run_knife_equipped.connect(func(_id): _update_knife_display())
 	GameManager.streak_changed.connect(_on_streak_changed)
 	GameManager.streak_milestone.connect(_on_streak_milestone)
 	GameManager.streak_broken.connect(_flash_streak_break)
@@ -82,6 +89,7 @@ func _ready() -> void:
 	# Las acciones secundarias conservan el tema; Continuar es la acción principal.
 	UiTheme.apply_button_style(continue_btn, "primary")
 	UiTheme.apply_button_style(pause_quit_btn, "danger")
+	UiTheme.add_hover_scale(save_and_quit_btn, 0.0)
 
 	stats_btn.pressed.connect(_on_stats_button_pressed)
 	pause_btn.pressed.connect(_on_pause_button_pressed)
@@ -89,8 +97,8 @@ func _ready() -> void:
 	settings_btn.pressed.connect(_on_settings_button_pressed)
 	settings_back_btn.pressed.connect(_on_settings_back_pressed)
 	pause_quit_btn.pressed.connect(_on_pause_quit_pressed)
+	save_and_quit_btn.pressed.connect(_on_save_and_quit_pressed)
 	pause_confirm_dialog.confirmed.connect(_on_quit_confirmed)
-	_update_knife_display()
 	_update_launch_rate_display()
 	_last_streak_multiplier = GameManager.get_streak_multiplier()
 	_set_multiplier_display(_last_streak_multiplier)
@@ -100,17 +108,7 @@ func _ready() -> void:
 	_on_energy_changed(GameManager.current_energy, StatsManager.get_final_max_energy())
 	_on_round_time_changed(GameManager.round_time_left)
 
-func format_damage(value: float) -> String:
-	return UiTheme.format_stat(value)
-
-func _update_knife_display() -> void:
-	var knife_data: KnifeData = StatsManager.get_equipped_knife_data()
-	var knife_name: String = knife_data.name
-	var knife_icon: String = knife_data.icon
-	knife_label.text = knife_icon + " " + knife_name + " (⚔️" + format_damage(StatsManager.get_final_damage()) + ")"
-
 func _on_stats_updated() -> void:
-	_update_knife_display()
 	_update_launch_rate_display()
 	_on_streak_changed(GameManager.current_streak, GameManager.get_streak_multiplier())
 
@@ -118,7 +116,7 @@ func _update_launch_rate_display() -> void:
 	# Contador informativo: NO es un recurso consumible, asi que va fuera del
 	# anillo de racha, en una pieza compacta con su propia jerarquia visual.
 	var rate: float = StatsManager.get_final_launch_rate()
-	rate_value.text = "🍓 " + UiTheme.format_stat(rate) + " frutas/s"
+	rate_value.text = "Ritmo · " + UiTheme.format_stat(rate) + " cubos/s"
 
 var _last_money: float = -1.0
 var _order_target: float = 0.0
@@ -131,13 +129,15 @@ func _on_money_changed(amount: float) -> void:
 
 # En fase de BONUS (cuota ya cumplida) el rótulo deja de mostrar el progreso hacia
 # el objetivo y pasa a mostrar la ganancia extra del día, que es lo único que
-# sigue aumentando al seguir cortando fruta.
+# sigue aumentando al seguir produciendo gomitas.
 func _update_money_display(amount: float) -> void:
 	if _is_bonus_phase():
-		money_label.text = "💰 BONUS  +$" + UiTheme.format_money(GameManager.get_order_bonus())
+		money_label.theme_type_variation = &"BonusValue"
+		money_label.text = "BONUS  +$" + UiTheme.format_money(GameManager.get_order_bonus())
 		money_label.modulate = UiTheme.COLOR_ACCENT
 	else:
-		money_label.text = "💰 $" + UiTheme.format_money(amount) + " / $" + UiTheme.format_money(_order_target)
+		money_label.theme_type_variation = &"Subtitle"
+		money_label.text = "Saldo $" + UiTheme.format_money(amount) + " · Meta $" + UiTheme.format_money(_order_target)
 		money_label.modulate = Color.WHITE
 
 # ¿Se ha cumplido ya la cuota del día? A partir de ese momento todo el dinero que
@@ -148,9 +148,11 @@ func _is_bonus_phase() -> bool:
 func _on_order_progress_changed(progress: float, target: float) -> void:
 	_order_target = target
 	var bonus_phase: bool = _is_bonus_phase()
-	day_label.text = ("🎯 Día " + str(GameManager.current_order) + " · BONUS") if bonus_phase else ("🎯 Día " + str(GameManager.current_order))
+	day_label.text = ("Día " + str(GameManager.current_order) + " · BONUS") if bonus_phase else ("Día " + str(GameManager.current_order))
 	day_label.modulate = UiTheme.COLOR_ACCENT if bonus_phase else Color.WHITE
-	status_info_label.text = "💼 Negocio " + str(SaveManager.save_data.get("days_started", 1))
+	status_info_label.text = "Negocio " + str(SaveManager.save_data.get("days_started", 1))
+	money_bar.theme_type_variation = &"BonusBar" if bonus_phase else &"MoneyBar"
+	money_bar.tooltip_text = "Generado $" + UiTheme.format_money(progress) + " · Meta $" + UiTheme.format_money(target)
 	money_bar.max_value = target
 	# La barra no crece con el bonus: se queda llena y en dorado, para que se lea
 	# "objetivo cumplido" y no "todavía no llego".
@@ -158,7 +160,7 @@ func _on_order_progress_changed(progress: float, target: float) -> void:
 	money_bar.modulate = UiTheme.COLOR_ACCENT if bonus_phase else Color.WHITE
 	_update_money_display(GameManager.run_money)
 
-# El día se cumple con una fruta: activa una sola lluvia dorada hasta terminar
+# Alcanzar la meta al producir una gomita activa lluvia dorada hasta terminar
 # la ronda + aviso en el centro. La interfaz se queda en modo BONUS.
 func _on_order_goal_reached(_bonus: float) -> void:
 	bonus_celebration_requested.emit()
@@ -207,10 +209,10 @@ func _on_stats_button_pressed() -> void:
 	SoundManager.play_click()
 	emit_signal("open_stats_requested")
 
-# --- Racha de frutas --------------------------------------------------------
+# --- Racha de gomitas -------------------------------------------------------
 
 # Hitos ordenados ascendentemente para calcular progreso entre hitos. A partir
-# de 1000 la progresión es por bandas de 1000 frutas (2000, 3000...), sin más.
+# de 1000 la progresión es por bandas de 1000 gomitas (2000, 3000...), sin más.
 const STREAK_ORDER: Array[int] = [10, 50, 100, 250, 500, 1000]
 @onready var multiplier_fly_label: Label = $MultiplierFlyLabel
 var _multiplier_fly_tween: Tween
@@ -269,7 +271,7 @@ func _animate_multiplier_fly(multiplier: float) -> void:
 		_set_multiplier_display(multiplier)
 	)
 
-# Destello rojo al romperse la racha (al tocar una piedra u obstáculo).
+# Destello rojo al romperse la racha (al tocar una caramelo endurecido u obstáculo).
 func _flash_streak_break() -> void:
 	streak_ring.flash_break()
 
@@ -278,8 +280,8 @@ func _flash_streak_break() -> void:
 func _streak_progress(streak: int) -> Dictionary:
 	var last: int = STREAK_ORDER[STREAK_ORDER.size() - 1]
 	if streak >= last:
-		# Por encima de 1000 se muestran bandas de 1000 frutas, siempre abiertas:
-		# next = siguiente millar, dentro de una ventana de 1000 frutas.
+		# Por encima de 1000 se muestran bandas de 1000 gomitas, siempre abiertas:
+		# next = siguiente millar, dentro de una ventana de 1000 gomitas.
 		var band: int = int((streak - last) / 1000)
 		var window_start: int = last + band * 1000
 		var next: int = window_start + 1000
@@ -329,10 +331,10 @@ func _show_next_achievement() -> void:
 		return
 	_ach_showing = true
 	var def: Dictionary = _ach_queue.pop_front()
-	ach_icon.text = str(def.get("icon", "🏆"))
-	ach_title.text = "🎉 Logro completado"
+	preload("res://scripts/ui/GummyIcons.gd").replace_label(ach_icon, "achievement")
+	ach_title.text = "Logro completado"
 	ach_desc.text = str(def.get("name", "¡Logro conseguido!"))
-	# Entrada y salida discretas sin cortar la partida (fade + escala suave,
+	# Entrada y salida discretas sin procesar la partida (fade + escala suave,
 	# sin mover la posición para no chocar con los anchors del panel).
 	if _ach_toast_tween and _ach_toast_tween.is_valid():
 		_ach_toast_tween.kill()
@@ -344,6 +346,7 @@ func _show_next_achievement() -> void:
 	_ach_toast_tween.set_parallel(true)
 	_ach_toast_tween.tween_property(ach_toast, "modulate:a", 1.0, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	_ach_toast_tween.tween_property(ach_toast, "scale", Vector2.ONE * 1.04, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_ach_toast_tween.chain().tween_property(ach_toast, "scale", Vector2.ONE, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	_ach_toast_tween.chain().tween_interval(2.4)
 	_ach_toast_tween.chain().tween_property(ach_toast, "modulate:a", 0.0, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	_ach_toast_tween.chain().tween_callback(func():
@@ -382,13 +385,21 @@ func _on_settings_back_pressed() -> void:
 
 func _on_pause_quit_pressed() -> void:
 	SoundManager.play_click()
+	var successful := GameManager.has_won_run()
 	pause_confirm_dialog.open(
-		"RENUNCIAR AL NEGOCIO",
-		"¿Seguro que quieres renunciar a este negocio?\nPerderás el progreso del día actual.",
-		"RENUNCIAR",
+		"FINALIZAR NEGOCIO" if successful else "RENUNCIAR AL NEGOCIO",
+		"¿Quieres finalizar este negocio exitoso?\nSe registrarán los días completados y tus estadísticas." if successful else "¿Seguro que quieres renunciar a este negocio?\nSe registrarán los días completados, pero no el día actual.",
+		"FINALIZAR" if successful else "RENUNCIAR",
 		"CONTINUAR JUGANDO"
 	)
 
 func _on_quit_confirmed() -> void:
 	pause_panel.visible = false
 	emit_signal("quit_run_requested")
+
+# "Guardar y salir": persiste la run en curso y vuelve al menú sin terminarla.
+# Main.gd guarda la instantánea y abandona con GameManager.abandon_run_to_menu().
+func _on_save_and_quit_pressed() -> void:
+	SoundManager.play_click()
+	pause_panel.visible = false
+	emit_signal("save_and_quit_requested")

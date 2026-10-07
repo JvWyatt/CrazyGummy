@@ -6,6 +6,6 @@
 script = ExtResource("1_prestige")
 id = "good_fortune"
 name = "Buena Fortuna"
-desc = "+7.77% Probabilidad de Jackpot"
+desc = "+1 p.p. Probabilidad de Jackpot"
 cost = 5
 icon = "⭐"

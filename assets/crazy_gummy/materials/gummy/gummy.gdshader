@@ -2,11 +2,14 @@ shader_type spatial;
 render_mode blend_mix, depth_prepass_alpha, cull_back, diffuse_burley, specular_schlick_ggx;
 
 // Un único shader para las gomitas: sin texturas, lectura de pantalla ni bucles.
-uniform vec4 primary_color : source_color = vec4(0.95, 0.08, 0.22, 1.0);
-uniform vec4 secondary_color : source_color = vec4(1.0, 0.42, 0.55, 1.0);
-uniform float opacity : hint_range(0.82, 1.0, 0.01) = 0.90;
-uniform float surface_roughness : hint_range(0.05, 0.75, 0.01) = 0.18;
-uniform float internal_glow : hint_range(0.0, 0.3, 0.01) = 0.10;
+uniform vec4 primary_color : source_color = vec4(0.9490196, 0.2196078, 0.2901961, 1.0);
+uniform vec4 secondary_color : source_color = vec4(0.1254902, 0.9019608, 0.7568627, 1.0);
+uniform float opacity : hint_range(0.55, 0.95, 0.01) = 0.80;
+uniform float surface_roughness : hint_range(0.08, 0.65, 0.01) = 0.16;
+uniform float specular_strength : hint_range(0.0, 1.0, 0.01) = 0.55;
+uniform float rim_strength : hint_range(0.0, 0.5, 0.01) = 0.18;
+uniform float edge_opacity : hint_range(0.0, 0.25, 0.01) = 0.16;
+uniform float volume_contrast : hint_range(0.0, 0.3, 0.01) = 0.12;
 uniform int pattern_mode : hint_range(0, 4, 1) = 0;
 uniform float pattern_scale : hint_range(1.0, 32.0, 0.5) = 12.0;
 uniform float pattern_mix : hint_range(0.0, 1.0, 0.05) = 0.75;
@@ -51,13 +54,12 @@ void fragment() {
 		roughness = mix(roughness, 0.72, sugar);
 		NORMAL = normalize(NORMAL + vec3(grain - 0.5, fract(grain * 7.0) - 0.5, 0.0) * sugar_amount * 0.12);
 	}
-	// Absorción suave e iluminación interior simulada: volumen legible sin refraction.
-	ALBEDO = tint * mix(0.83, 1.0, facing);
+	// Color saturado y bordes más densos: gelatina sólida, sin refracción ni emisión.
+	ALBEDO = tint * mix(1.0 - volume_contrast, 1.0, facing);
 	METALLIC = 0.0;
 	ROUGHNESS = roughness;
-	SPECULAR = 0.65;
-	RIM = 0.30;
-	RIM_TINT = 0.65;
-	EMISSION = tint * internal_glow * (0.45 + facing * 0.55);
-	ALPHA = clamp(opacity + edge * 0.06, 0.82, 1.0);
+	SPECULAR = specular_strength;
+	RIM = rim_strength;
+	RIM_TINT = 0.45;
+	ALPHA = clamp(opacity + edge * edge_opacity, 0.55, 0.95);
 }

@@ -6,7 +6,7 @@
 script = ExtResource("1_run")
 id = "luck"
 name = "Golpe de Suerte"
-desc = "+0.777% probabilidad de Jackpot"
+desc = "+0.1 p.p. probabilidad de Jackpot"
 base_cost = 5
 cost_mult = 1.5
 icon = "🍀"

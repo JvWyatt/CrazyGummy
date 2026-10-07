@@ -3,7 +3,7 @@ extends Node
 # GameManager (Autoload / Singleton)
 # ----------------------------------------------------------------------------
 # Controla el estado de LA PARTIDA ACTUAL ("el negocio"): dinero de la
-# partida, día/pedido actual, energía actual, y qué frutas y armas se han
+# partida, día actual, resistencia, y qué recetas y herramientas se han
 # desbloqueado/equipado SOLO durante este negocio (se reinician si el negocio
 # quiebra). Para el progreso PERMANENTE (prestigio, reputación, desbloqueos
 # históricos) revisa SaveManager.gd en su lugar.
@@ -27,8 +27,8 @@ signal energy_changed(current_energy: float, max_energy: float)
 signal round_time_changed(time_left: float)
 signal run_started
 signal run_ended(summary: Dictionary)
-signal fruit_destroyed_event(fruit_data: FruitData, reward: float, is_jackpot: bool)
-signal run_knife_equipped(knife_id: String)
+signal gummy_produced_event(recipe_data: RecipeData, reward: float, is_jackpot: bool)
+signal run_tool_equipped(tool_id: String)
 signal streak_changed(current_streak: int, multiplier: float)
 signal streak_milestone(milestone: int)
 signal streak_broken
@@ -38,7 +38,7 @@ signal streak_broken
 # fórmula geométrica sencilla (ver get_order_target_for). El día 1 es de regalo
 # (objetivo $0: basta con terminar la ronda) y desde el día 2 la cuota arranca
 # en balance.base_order_target y crece × order_target_growth por día: día 100
-# ≈ $10 × 1.21^98 ≈ $1.30B. Cada día es alcanzable con la fruta/arma del día
+# ≈ $10 × 1.21^98 ≈ $1.30B. Cada día es alcanzable con la cubo/herramienta del día
 # anterior y deja un excedente para comprar mejoras.
 # Los valores de la cuota, la duración de la ronda (round_time_seconds) y el
 # día de victoria (win_day) se editan VISUALMENTE en res://data/balance.tres
@@ -73,9 +73,11 @@ var daily_goal_reached: bool = false
 var run_money: float = 0.0        # Dinero disponible para gastar en la tienda (se resetea cada negocio)
 
 var total_money_generated_run: float = 0.0
-var total_fruits_cut_run: int = 0
+var total_gummies_produced_run: int = 0
 var total_jackpots_run: int = 0
-var total_golden_fruits_run: int = 0
+var total_golden_gummies_run: int = 0
+var completed_orders_run: int = 0
+var _run_has_ended: bool = true
 
 # Duración máxima de cada ronda en segundos (balance.round_time_seconds,
 # editable en res://data/balance.tres). Es un límite FIJO: no depende de
@@ -101,46 +103,46 @@ func _process(delta: float) -> void:
 	if round_time_left <= 0.0:
 		_end_round_and_validate()
 
-# Fruits/knives bought during the current run only - reset on start_new_run(), like run upgrades and cards
-var run_unlocked_fruits: Array[String] = ["strawberry"]
-var run_unlocked_knives: Array[String] = ["weapon_fist"]
-var run_equipped_knife: String = "weapon_fist"
+# Recipes/tools bought during the current run only - reset on start_new_run(), like run upgrades and cards
+var run_unlocked_recipes: Array[String] = ["bear_classic"]
+var run_unlocked_tools: Array[String] = ["tool_fists"]
+var run_equipped_tool: String = "tool_fists"
 
 # ----------------------------------------------------------------------------
-# RACHA DE FRUTAS
+# RACHA DE GOMITAS (identificadores históricos conservados)
 # ----------------------------------------------------------------------------
-# La racha sube de 1 por cada fruta cortada y se REINICIA a 0 si el jugador
-# toca una piedra/obstáculo. El multiplicador de monedas aplicado corresponde
-# al último hito alcanzado (y se queda en x2.00 tras superar 50).
+# La racha sube de 1 por cada gomita producida y se REINICIA a 0 si el jugador
+# toca una caramelo endurecido/obstáculo. El multiplicador de monedas aplicado corresponde
+# al último hito alcanzado de STREAK_MILESTONES; desde 1000 crece por millares.
 var current_streak: int = 0
 # Caché del multiplicador del mayor hito de racha alcanzado: se recalcula SOLO
 # al CAMBIAR la racha (ver _refresh_streak_multiplier), para que
-# get_streak_multiplier() haga O(1) en el hot path de cada corte.
+# get_streak_multiplier() haga O(1) en el hot path de cada golpe.
 var _streak_mult: float = 1.0
 
 # --- Tracking de logros por día/negocio (se resetea) -----------------------
-var _stones_hit_this_day: int = 0
-# True cuando la "primera piedra gratis" del día ya se consumió (ver comodín
-# raro first_stone_free). Se resetea al empezar cada día.
-var _first_stone_consumed_this_day: bool = false
+var _candies_hit_this_day: int = 0
+# True cuando la "primera caramelo endurecido gratis" del día ya se consumió (ver comodín
+# raro first_candy_free). Se resetea al empezar cada día.
+var _first_candy_consumed_this_day: bool = false
 var _crits_this_day: int = 0
-var _golden_fruits_this_day: int = 0
-var _normal_fruits_this_day: int = 0
-var _fruits_this_day_set: Dictionary = {}
+var _golden_gummies_this_day: int = 0
+var _normal_gummies_this_day: int = 0
+var _recipes_this_day_set: Dictionary = {}
 var _upgrades_bought_this_run: int = 0
-var _fist_cuts_this_run: int = 0
+var _fists_productions_this_run: int = 0
 # Prestigio (reputación) ganado durante ESTE negocio: 1 ⭐ por día + bonus de
 # comodines ACTIVOS. Se acumula en _on_day_completed y se muestra en el
 # resumen final SIN sumarse de nuevo (ya se añadió a SaveManager día a día).
 var prestige_earned_this_run: float = 0.0
-# "Hachero Total": se marca al cambiar de arma y se evalúa al completar el día
+# "Hachero Total": se marca al cambiar de herramienta y se evalúa al completar el día
 # (la ventana cubre también la tienda entre días: ver _on_day_completed).
-var _weapon_changed_this_day: bool = false
+var _tool_changed_this_day: bool = false
 
 # Hitos de racha -> multiplicador de monedas. La racha empieza a otorgar
-# multiplicador a partir de 10 frutas consecutivas; el multiplicador activo es
+# multiplicador a partir de 10 cubos consecutivas; el multiplicador activo es
 # el del mayor hito alcanzado (ver get_streak_multiplier). A partir de 1000,
-# cada 1000 frutas adicionales suma +1.00 al multiplicador (2000 → ×3.50,
+# cada 1000 cubos adicionales suma +1.00 al multiplicador (2000 → ×3.50,
 # 3000 → ×4.50...). NO existen incrementos intermedios fuera de estos hitos.
 const STREAK_MILESTONES: Dictionary = {
 	10: 1.10,
@@ -151,26 +153,26 @@ const STREAK_MILESTONES: Dictionary = {
 	1000: 2.50,
 }
 
-# Multiplicador según el número de frutas consecutivas cortadas: el del mayor
+# Multiplicador según el número de cubos consecutivas procesadas: el del mayor
 # hito alcanzado MÁS el bonus ADITIVO acumulado por comodines de racha.
 func get_streak_multiplier() -> float:
 	return maxf(_streak_mult, 1.0) + StatsManager.get_streak_bonus()
 
 # Recalcula _streak_mult recorriendo los hitos de racha. Solo se llama cuando
-# cambia la racha (incremento, ruptura o reseteo de día), no en cada corte.
+# cambia la racha (incremento, ruptura o reseteo de día), no en cada golpe.
 func _refresh_streak_multiplier() -> void:
 	var mult: float = 1.0
 	for m in STREAK_MILESTONES:
 		if current_streak >= int(m):
 			mult = STREAK_MILESTONES[m]
-	# A partir del último hito (1000), cada 1000 frutas adicionales suma +1.00.
+	# A partir del último hito (1000), cada 1000 cubos adicionales suma +1.00.
 	var last_m: int = 1000
 	if current_streak >= last_m:
 		var bands: int = int((current_streak - last_m) / 1000)
 		mult = float(STREAK_MILESTONES[1000]) + float(bands) * 1.0
 	_streak_mult = mult
 
-# Incrementa la racha al cortar una fruta (llamado desde register_fruit_cut).
+# Incrementa la racha al procesar una cubo (llamado desde register_gummy_produced).
 func _increment_streak() -> void:
 	var next_streak: int = current_streak + 1
 	# Es un hito si está en la tabla fija (10..500 en el rango 1000) o si es un
@@ -187,7 +189,7 @@ func _increment_streak() -> void:
 	if current_streak == 15:
 		AchievementManager.set_flag("blind_streak")
 
-# Reinicia la racha a 0 y el multiplicador a x1.00 (al tocar una piedra).
+# Reinicia la racha a 0 y el multiplicador a x1.00 (al tocar una caramelo endurecido).
 func break_streak() -> void:
 	if current_streak != 0:
 		current_streak = 0
@@ -210,45 +212,49 @@ func get_order_target_for(order_num: int) -> float:
 	return base * StatsManager.get_order_target_multiplier()
 
 # Dinero generado por encima de la cuota del día: la ganancia extra (BONUS) que
-# se lleva el jugador si sigue cortando fruta después de cumplir el objetivo.
+# se lleva el jugador si sigue cortando cubo después de cumplir el objetivo.
 func get_order_bonus() -> float:
 	return maxf(0.0, order_progress - order_target)
 
 # Empieza un negocio nuevo desde cero: reinicia dinero, pedido, energía y
-# TAMBIÉN las frutas/armas desbloqueadas de la partida anterior (solo el
+# TAMBIÉN las cubos/herramientas desbloqueadas de la partida anterior (solo el
 # progreso permanente en SaveManager sobrevive a esto).
 func start_new_run() -> void:
 	StatsManager.reset_run_stats()
+	_run_has_ended = false
+	completed_orders_run = 0
 	current_order = 1
 	order_target = get_order_target_for(current_order)
 	order_progress = 0.0
 	daily_goal_reached = false
 	run_money = 0.0
 	total_money_generated_run = 0.0
-	total_fruits_cut_run = 0
+	total_gummies_produced_run = 0
 	total_jackpots_run = 0
-	total_golden_fruits_run = 0
+	total_golden_gummies_run = 0
 	current_energy = StatsManager.get_final_max_energy()
 	current_state = GameState.PLAYING
-	run_unlocked_fruits = ["strawberry"]
-	run_unlocked_knives = ["weapon_fist"]
-	run_equipped_knife = "weapon_fist"
+	run_unlocked_recipes = ["bear_classic"]
+	run_unlocked_tools = ["tool_fists"]
+	run_equipped_tool = "tool_fists"
 	StatsManager.invalidate_stat_cache()
 	current_streak = 0
 	_refresh_streak_multiplier()
-	_stones_hit_this_day = 0
-	_first_stone_consumed_this_day = false
+	_candies_hit_this_day = 0
+	_first_candy_consumed_this_day = false
 	_crits_this_day = 0
-	_golden_fruits_this_day = 0
-	_normal_fruits_this_day = 0
-	_fruits_this_day_set = {}
+	_golden_gummies_this_day = 0
+	_normal_gummies_this_day = 0
+	_recipes_this_day_set = {}
 	_upgrades_bought_this_run = 0
-	_fist_cuts_this_run = 0
+	_fists_productions_this_run = 0
 	prestige_earned_this_run = 0.0
-	_weapon_changed_this_day = false
+	_tool_changed_this_day = false
 	emit_signal("streak_changed", 0, 1.0)
-	emit_signal("run_knife_equipped", run_equipped_knife)
+	emit_signal("run_tool_equipped", run_equipped_tool)
 	SaveManager.record_day_started()
+	# Un negocio nuevo no puede continuar la partida guardada anterior.
+	SaveManager.clear_active_run()
 	
 	round_time_left = get_round_time()
 	emit_signal("round_time_changed", round_time_left)
@@ -279,7 +285,7 @@ func consume_energy(amount: float) -> bool:
 		_end_round_and_validate()
 	return true
 
-# Penalización por golpear un obstáculo (piedra...): resta una fracción de la
+# Penalización por golpear un obstáculo (caramelo endurecido...): resta una fracción de la
 # resistencia MÁXIMA. Devuelve cuánta resistencia se perdió realmente.
 func penalize_resistance() -> float:
 	var penalty: float = StatsManager.get_obstacle_resistance_penalty()
@@ -290,10 +296,10 @@ func penalize_resistance() -> float:
 		_end_round_and_validate()
 	return previous - current_energy
 
-# Se llama cada vez que un jugador corta una fruta con éxito. Calcula la
+# Se llama cada vez que un jugador corta una cubo con éxito. Calcula la
 # recompensa final (aplicando el multiplicador de dinero) y actualiza el
 # progreso del pedido y el dinero disponible en la tienda.
-func register_fruit_cut(fruit_data: FruitData, base_reward: float, is_jackpot: bool, is_golden: bool = false) -> float:
+func register_gummy_produced(recipe_data: RecipeData, base_reward: float, is_jackpot: bool, is_golden: bool = false) -> float:
 	_increment_streak()
 	var streak_mult: float = get_streak_multiplier()
 	var final_reward: float = base_reward * StatsManager.get_final_money_multiplier() * streak_mult
@@ -305,50 +311,50 @@ func register_fruit_cut(fruit_data: FruitData, base_reward: float, is_jackpot: b
 		AchievementManager.set_flag("beat_day_rushed")
 	# Fin de la fase de "llegar a la cuota": a partir de aquí todo el dinero del
 	# día es ganancia extra. Se avisa UNA sola vez por día. El "> 0" cubre el día
-	# 1, cuya cuota es $0 y por tanto ya está "cumplida" antes de cortar nada:
-	# el bonus empieza con la primera fruta.
+	# 1, cuya cuota es $0 y por tanto ya está "cumplida" antes de procesar nada:
+	# el bonus empieza con la primera cubo.
 	if not daily_goal_reached and order_progress > 0.0 and order_progress >= order_target:
 		daily_goal_reached = true
 		emit_signal("order_goal_reached", get_order_bonus())
 	total_money_generated_run += final_reward
-	total_fruits_cut_run += 1
+	total_gummies_produced_run += 1
 	if is_jackpot:
 		total_jackpots_run += 1
 	if is_golden:
-		total_golden_fruits_run += 1
+		total_golden_gummies_run += 1
 
-	# Logros: métricas globales y por fruta.
-	AchievementManager.record_metric("fruits_cut", 1)
+	# Logros: métricas globales y por cubo.
+	AchievementManager.record_metric("gummies_produced", 1)
 	AchievementManager.record_metric("money_total", final_reward)
-	var fruit_id: String = str(fruit_data.id) if fruit_data else ""
-	if fruit_id != "":
-		AchievementManager.record_metric("cut_" + fruit_id, 1)
-		_fruits_this_day_set[fruit_id] = true
+	var recipe_id: String = str(recipe_data.id) if recipe_data else ""
+	if recipe_id != "":
+		AchievementManager.record_metric("produced_" + recipe_id, 1)
+		_recipes_this_day_set[recipe_id] = true
 	if is_jackpot:
 		AchievementManager.record_metric("jackpots", 1)
 		if is_golden:
 			AchievementManager.set_flag("golden_jackpot")
-	# "Fruta y Pan": dorada Y normal en el mismo día, en CUALQUIER orden.
+	# "Dulce Contraste": dorada y normal en el mismo día, en cualquier orden.
 	if is_golden:
-		AchievementManager.record_metric("golden_fruits", 1)
-		_golden_fruits_this_day += 1
-		if _golden_fruits_this_day >= 2:
-			AchievementManager.set_metric("golden_fruits_in_one_day", 2)
-		if _normal_fruits_this_day > 0:
+		AchievementManager.record_metric("golden_gummies", 1)
+		_golden_gummies_this_day += 1
+		if _golden_gummies_this_day >= 2:
+			AchievementManager.set_metric("golden_gummies_in_one_day", 2)
+		if _normal_gummies_this_day > 0:
 			AchievementManager.set_flag("golden_and_normal_day")
 	else:
-		_normal_fruits_this_day += 1
-		if _golden_fruits_this_day > 0:
+		_normal_gummies_this_day += 1
+		if _golden_gummies_this_day > 0:
 			AchievementManager.set_flag("golden_and_normal_day")
-	# Logro "Origen": cortar 100 frutas con el Puño equipado en el negocio.
-	if run_equipped_knife == "weapon_fist":
-		_fist_cuts_this_run += 1
-		if _fist_cuts_this_run >= 100:
-			AchievementManager.set_flag("started_with_fist")
+	# Logro "Origen": producir 100 gomitas con los Puños en este negocio.
+	if run_equipped_tool == "tool_fists":
+		_fists_productions_this_run += 1
+		if _fists_productions_this_run >= 100:
+			AchievementManager.set_flag("produced_with_fists")
 
 	emit_signal("money_changed", run_money)
 	emit_signal("order_progress_changed", order_progress, order_target)
-	emit_signal("fruit_destroyed_event", fruit_data, final_reward, is_jackpot)
+	emit_signal("gummy_produced_event", recipe_data, final_reward, is_jackpot)
 
 	return final_reward
 
@@ -359,37 +365,39 @@ func spend_run_money(amount: float) -> bool:
 		return true
 	return false
 
-# --- Frutas y armas desbloqueadas SOLO en este negocio ---
-# (se pierden al quebrar; ver run_unlocked_fruits/run_unlocked_knives arriba)
-func is_fruit_unlocked_this_run(fruit_id: String) -> bool:
-	return fruit_id in run_unlocked_fruits
+# --- Cubos y herramientas desbloqueadas SOLO en este negocio ---
+# (se pierden al quebrar; ver run_unlocked_recipes/run_unlocked_tools arriba)
+func is_recipe_unlocked_this_run(recipe_id: String) -> bool:
+	return recipe_id in run_unlocked_recipes
 
-func unlock_fruit_this_run(fruit_id: String) -> void:
-	if not (fruit_id in run_unlocked_fruits):
-		run_unlocked_fruits.append(fruit_id)
-		SaveManager.unlock_fruit(fruit_id) # keeps lifetime discovery record for Progress stats
-		AchievementManager.set_metric("fruits_unlocked", SaveManager.get_unlocked_fruits().size())
+func unlock_recipe_this_run(recipe_id: String) -> void:
+	if not (recipe_id in run_unlocked_recipes):
+		run_unlocked_recipes.append(recipe_id)
+		SaveManager.unlock_recipe(recipe_id) # keeps lifetime discovery record for Progress stats
+		AchievementManager.set_metric("recipes_unlocked", SaveManager.get_unlocked_recipes().size())
 
-func is_knife_unlocked_this_run(knife_id: String) -> bool:
-	return knife_id in run_unlocked_knives
+func is_tool_unlocked_this_run(tool_id: String) -> bool:
+	return tool_id in run_unlocked_tools
 
-func unlock_knife_this_run(knife_id: String) -> void:
-	if not (knife_id in run_unlocked_knives):
-		run_unlocked_knives.append(knife_id)
-		SaveManager.unlock_knife(knife_id) # keeps lifetime discovery record for Progress stats
-		AchievementManager.set_metric("knives_owned", SaveManager.get_unlocked_knives().size())
+func unlock_tool_this_run(tool_id: String) -> void:
+	if not (tool_id in run_unlocked_tools):
+		run_unlocked_tools.append(tool_id)
+		SaveManager.unlock_tool(tool_id) # keeps lifetime discovery record for Progress stats
+		AchievementManager.set_metric("tools_owned", SaveManager.get_unlocked_tools().size())
 
-func set_equipped_knife_this_run(knife_id: String) -> void:
-	# Equipar el MISMO arma no cuenta como cambio para "Hachero Total".
-	if knife_id != run_equipped_knife:
-		_weapon_changed_this_day = true
-	run_equipped_knife = knife_id
+func set_equipped_tool_this_run(tool_id: String) -> void:
+	# Equipar el MISMO herramienta no cuenta como cambio para "Hachero Total".
+	if tool_id != run_equipped_tool:
+		_tool_changed_this_day = true
+	run_equipped_tool = tool_id
 	StatsManager.invalidate_stat_cache()
-	if knife_id == "weapon_chainsaw":
-		AchievementManager.set_flag("used_chainsaw")
-	emit_signal("run_knife_equipped", knife_id)
+	if tool_id == "tool_crazy_hammer":
+		AchievementManager.set_flag("equipped_crazy_hammer")
+	emit_signal("run_tool_equipped", tool_id)
 
 func _end_round_and_validate() -> void:
+	if _run_has_ended or current_state != GameState.PLAYING:
+		return
 	is_round_active = false
 	if order_progress >= order_target:
 		# Objective met - round won, continue to comodines/shop
@@ -403,6 +411,8 @@ func _end_round_and_validate() -> void:
 
 # Registra los logros ligados a completar un día (días, perfecto, estilo).
 func _on_day_completed() -> void:
+	# El día actual ya está completo incluso antes de continuar al siguiente.
+	completed_orders_run = maxi(completed_orders_run, current_order)
 	# Se genera 1 ⭐ de reputación por cada día completado (economía prestigio).
 	# Solo los comodines ACTIVOS pueden aumentar la reputación diaria (+bonus);
 	# el final del negocio NO vuelve a otorgar puntos (ver end_run_failed).
@@ -412,41 +422,41 @@ func _on_day_completed() -> void:
 	AchievementManager.record_metric("prestige_earned", day_prestige)
 	AchievementManager.set_metric("best_day", maxf(AchievementManager.get_metric("best_day"), current_order))
 	AchievementManager.record_metric("days_completed_total", 1)
-	if _stones_hit_this_day == 0:
+	if _candies_hit_this_day == 0:
 		AchievementManager.record_metric("clean_days", 1)
-	# Logros por arma equipada al completar el día.
-	match run_equipped_knife:
-		"weapon_fist":
-			AchievementManager.set_flag("day_with_fist")
-		"weapon_fork":
-			AchievementManager.set_flag("day_with_fork")
-		"weapon_knife":
-			AchievementManager.set_flag("day_with_knife")
-		"weapon_axe":
-			AchievementManager.set_flag("day_with_axe")
-		"weapon_sword":
-			AchievementManager.set_flag("day_with_sword")
-		"weapon_chainsaw":
-			AchievementManager.set_flag("day_with_top_knife")
+	# Logros por herramienta equipada al completar el día.
+	match run_equipped_tool:
+		"tool_fists":
+			AchievementManager.set_flag("day_with_fists")
+		"tool_confectioner_knife":
+			AchievementManager.set_flag("day_with_confectioner_knife")
+		"tool_shredder_axe":
+			AchievementManager.set_flag("day_with_shredder_axe")
+		"tool_hydraulic_hammer":
+			AchievementManager.set_flag("day_with_hydraulic_hammer")
+		"tool_gummy_crusher":
+			AchievementManager.set_flag("day_with_gummy_crusher")
+		"tool_crazy_hammer":
+			AchievementManager.set_flag("day_with_crazy_hammer")
 	# Logros de día perfecto por estilo.
 	# "Deuda Cero": terminar el día con la energía EXACTAMENTE en 0.
 	if current_energy <= 0.0:
 		AchievementManager.set_flag("day_finished_empty")
-	if _fresa_and_naranja_today():
-		AchievementManager.set_flag("fresa_y_naranja_day")
-	# "Hachero Total": día completado sin cambiar de arma. La ventana va de fin
+	if _bear_and_premium_worm_today():
+		AchievementManager.set_flag("bear_and_premium_worm_day")
+	# "Hachero Total": día completado sin cambiar de herramienta. La ventana va de fin
 	# de día a fin de día, asi que cambiar en la tienda cuenta para el día que
 	# empieza (por eso el reset es AQUÍ y no en advance_to_next_order).
-	if not _weapon_changed_this_day:
-		AchievementManager.set_flag("day_unchanged_weapon")
-	_weapon_changed_this_day = false
+	if not _tool_changed_this_day:
+		AchievementManager.set_flag("day_unchanged_tool")
+	_tool_changed_this_day = false
 	# "Astuta Economía": superar un día (a partir del 2º, cuando la tienda ya
 	# pudo usarse) sin haber comprado NINGUNA mejora del mercado en el negocio.
 	if _upgrades_bought_this_run == 0 and current_order >= 2:
 		AchievementManager.set_flag("no_prestige_spent_run")
 
-func _fresa_and_naranja_today() -> bool:
-	return _fruits_this_day_set.has("strawberry") and _fruits_this_day_set.has("orange")
+func _bear_and_premium_worm_today() -> bool:
+	return _recipes_this_day_set.has("bear_classic") and _recipes_this_day_set.has("worm_premium")
 
 func advance_to_next_order() -> void:
 	current_energy = StatsManager.get_final_max_energy()
@@ -459,14 +469,14 @@ func advance_to_next_order() -> void:
 	# Cada día arranca con la meta pendiente: el bonus vuelve a estar "por ganar".
 	daily_goal_reached = false
 	current_state = GameState.PLAYING
-	_stones_hit_this_day = 0
-	_first_stone_consumed_this_day = false
+	_candies_hit_this_day = 0
+	_first_candy_consumed_this_day = false
 	_crits_this_day = 0
-	_golden_fruits_this_day = 0
-	_normal_fruits_this_day = 0
-	_fruits_this_day_set = {}
+	_golden_gummies_this_day = 0
+	_normal_gummies_this_day = 0
+	_recipes_this_day_set = {}
 	# La racha se reinicia a 0 al empezar cada día nuevo, A MENOS que el jugador
-	# tenga un comodín mítico que la conserve entre días. La piedra SIEMPRE la
+	# tenga un comodín mítico que la conserve entre días. La caramelo endurecido SIEMPRE la
 	# rompe dentro del mismo día (ver SwipeController).
 	if not StatsManager.has_streak_keep():
 		current_streak = 0
@@ -479,28 +489,48 @@ func advance_to_next_order() -> void:
 	is_round_active = true
 
 func end_run_failed() -> void:
+	end_run("failed")
+
+func has_won_run() -> bool:
+	return completed_orders_run >= get_win_day()
+
+# Todas las salidas registran una sola vez, incluida la salida desde créditos.
+func end_run(reason: String = "quit") -> void:
+	if _run_has_ended:
+		return
+	_run_has_ended = true
+	# La run ha terminado de VERDAD (quiebra, renuncia o salida desde créditos):
+	# la partida guardada pierde el derecho a continuarse.
+	SaveManager.clear_active_run()
 	is_round_active = false
 	current_state = GameState.RESULTS
-	SoundManager.play_game_over()
+	var successful := has_won_run()
+	if successful:
+		SoundManager.play_victory()
+	elif reason == "failed":
+		SoundManager.play_game_over()
 
 	# La reputación de ESTE negocio ya se concedió día a día en _on_day_completed
 	# (1 ⭐ por día + bonus de comodines activos): NO se vuelve a sumar aquí para
 	# evitar duplicar los mismos puntos (antes esta fórmula los contaba 2×).
-	var completed_orders_count: int = current_order - 1
+	var completed_orders_count: int = completed_orders_run
 	var earned_prestige: float = prestige_earned_this_run
 
-	SaveManager.record_run_stats(completed_orders_count, total_fruits_cut_run)
+	SaveManager.record_run_stats(completed_orders_count, total_gummies_produced_run)
 
 	# Logros ligados al final del negocio.
-	AchievementManager.record_metric("runs_bankrupt", 1)
+	if not successful and reason == "failed":
+		AchievementManager.record_metric("runs_bankrupt", 1)
 	AchievementManager.set_metric("run_money_total", maxf(AchievementManager.get_metric("run_money_total"), total_money_generated_run))
 
 	var summary: Dictionary = {
+		"successful": successful,
+		"end_reason": reason,
 		"completed_orders": completed_orders_count,
 		"money_generated": total_money_generated_run,
-		"fruits_cut": total_fruits_cut_run,
+		"gummies_produced": total_gummies_produced_run,
 		"jackpots": total_jackpots_run,
-		"golden_fruits": total_golden_fruits_run,
+		"golden_gummies": total_golden_gummies_run,
 		"best_order": current_order,
 		"earned_prestige": earned_prestige,
 		"total_prestige": SaveManager.get_prestige_points()
@@ -508,8 +538,154 @@ func end_run_failed() -> void:
 
 	emit_signal("run_ended", summary)
 
-func get_unlocked_fruits_for_current_order() -> Array[String]:
+# ----------------------------------------------------------------------------
+# PARTIDA EN CURSO: guardar y salir / continuar
+# ----------------------------------------------------------------------------
+# "Guardar y salir" persiste una instantánea del negocio vivo (capture_run_state)
+# en SaveManager.active_run SIN terminar la run; "Continuar" la restaura con
+# restore_run_state. Un abandono al menú NO cuenta como derrota (no toca
+# _run_has_ended ni emite run_ended), así que volver a "Continuar" reanuda el
+# negocio exactamente donde estaba. end_run() sí invalida la instantánea.
+
+# Claves mínimas que toda instantánea debe traer para considerarse válida.
+const _RUN_SNAPSHOT_KEYS: Array[String] = [
+	"current_order", "order_target", "order_progress", "run_money",
+	"round_time_left", "current_energy", "current_state",
+	"run_unlocked_recipes", "run_unlocked_tools", "run_equipped_tool",
+]
+
+func capture_run_state() -> Dictionary:
+	return {
+		"current_order": current_order,
+		"order_target": order_target,
+		"order_progress": order_progress,
+		"daily_goal_reached": daily_goal_reached,
+		"run_money": run_money,
+		"total_money_generated_run": total_money_generated_run,
+		"total_gummies_produced_run": total_gummies_produced_run,
+		"total_jackpots_run": total_jackpots_run,
+		"total_golden_gummies_run": total_golden_gummies_run,
+		"completed_orders_run": completed_orders_run,
+		"_run_has_ended": _run_has_ended,
+		"is_round_active": is_round_active,
+		"current_energy": current_energy,
+		"round_time_left": round_time_left,
+		"current_state": current_state,
+		"run_unlocked_recipes": run_unlocked_recipes,
+		"run_unlocked_tools": run_unlocked_tools,
+		"run_equipped_tool": run_equipped_tool,
+		"current_streak": current_streak,
+		"_candies_hit_this_day": _candies_hit_this_day,
+		"_first_candy_consumed_this_day": _first_candy_consumed_this_day,
+		"_crits_this_day": _crits_this_day,
+		"_golden_gummies_this_day": _golden_gummies_this_day,
+		"_normal_gummies_this_day": _normal_gummies_this_day,
+		"_recipes_this_day_set": _recipes_this_day_set,
+		"_upgrades_bought_this_run": _upgrades_bought_this_run,
+		"_fists_productions_this_run": _fists_productions_this_run,
+		"prestige_earned_this_run": prestige_earned_this_run,
+		"_tool_changed_this_day": _tool_changed_this_day,
+		"stats": StatsManager.capture_run_stats(),
+	}
+
+func _snapshot_string_array(value: Variant) -> Array[String]:
+	var result: Array[String] = []
+	if value is Array:
+		for id: Variant in value:
+			if str(id) != "" and not str(id) in result:
+				result.append(str(id))
+	return result
+
+# Restaura la partida guardada (negocio en curso). Devuelve false si la
+# instantánea es inválida o está corrupta; en ese caso la borra para que no
+# vuelva a ofrecerse "Continuar" con un estado roto.
+func restore_run_state(snapshot: Dictionary) -> bool:
+	if snapshot.is_empty():
+		return false
+	for key: String in _RUN_SNAPSHOT_KEYS:
+		if not snapshot.has(key):
+			push_error("restore_run_state: instantánea sin la clave %s" % key)
+			_snapshot_invalid()
+			return false
+	var state: int = int(snapshot.get("current_state", GameState.MENU))
+	if state < GameState.MENU or state > GameState.RESULTS:
+		push_error("restore_run_state: estado de partida fuera de rango")
+		_snapshot_invalid()
+		return false
+	if bool(snapshot.get("_run_has_ended", false)):
+		push_error("restore_run_state: la run guardada ya había terminado")
+		_snapshot_invalid()
+		return false
+
+	current_order = maxi(1, int(snapshot.get("current_order", 1)))
+	order_target = maxf(0.0, float(snapshot.get("order_target", 0.0)))
+	order_progress = maxf(0.0, float(snapshot.get("order_progress", 0.0)))
+	daily_goal_reached = bool(snapshot.get("daily_goal_reached", false))
+	run_money = maxf(0.0, float(snapshot.get("run_money", 0.0)))
+	total_money_generated_run = maxf(0.0, float(snapshot.get("total_money_generated_run", 0.0)))
+	total_gummies_produced_run = maxi(0, int(snapshot.get("total_gummies_produced_run", 0)))
+	total_jackpots_run = maxi(0, int(snapshot.get("total_jackpots_run", 0)))
+	total_golden_gummies_run = maxi(0, int(snapshot.get("total_golden_gummies_run", 0)))
+	completed_orders_run = maxi(0, int(snapshot.get("completed_orders_run", 0)))
+	_run_has_ended = false
+	is_round_active = false
+	current_energy = maxf(0.0, float(snapshot.get("current_energy", 0.0)))
+	round_time_left = maxf(0.0, float(snapshot.get("round_time_left", 0.0)))
+	current_state = state
+
+	run_unlocked_recipes = _snapshot_string_array(snapshot.get("run_unlocked_recipes", []))
+	run_unlocked_tools = _snapshot_string_array(snapshot.get("run_unlocked_tools", []))
+	run_equipped_tool = str(snapshot.get("run_equipped_tool", "tool_fists"))
+	if run_unlocked_recipes.is_empty() or run_unlocked_tools.is_empty():
+		push_error("restore_run_state: desbloqueos de la run vacíos")
+		_snapshot_invalid()
+		return false
+	if not run_unlocked_tools.has("tool_fists"):
+		run_unlocked_tools.insert(0, "tool_fists")
+	if not StatsManager.get_sorted_tool_ids().has(run_equipped_tool):
+		push_warning("restore_run_state: herramienta equipada %s no existe, usando Puños" % run_equipped_tool)
+		run_equipped_tool = "tool_fists"
+
+	current_streak = maxi(0, int(snapshot.get("current_streak", 0)))
+	_candies_hit_this_day = maxi(0, int(snapshot.get("_candies_hit_this_day", 0)))
+	_first_candy_consumed_this_day = bool(snapshot.get("_first_candy_consumed_this_day", false))
+	_crits_this_day = maxi(0, int(snapshot.get("_crits_this_day", 0)))
+	_golden_gummies_this_day = maxi(0, int(snapshot.get("_golden_gummies_this_day", 0)))
+	_normal_gummies_this_day = maxi(0, int(snapshot.get("_normal_gummies_this_day", 0)))
+	var recipes_set: Variant = snapshot.get("_recipes_this_day_set", {})
+	_recipes_this_day_set = recipes_set if recipes_set is Dictionary else {}
+	_upgrades_bought_this_run = maxi(0, int(snapshot.get("_upgrades_bought_this_run", 0)))
+	_fists_productions_this_run = maxi(0, int(snapshot.get("_fists_productions_this_run", 0)))
+	prestige_earned_this_run = maxf(0.0, float(snapshot.get("prestige_earned_this_run", 0.0)))
+	_tool_changed_this_day = bool(snapshot.get("_tool_changed_this_day", false))
+
+	if not StatsManager.restore_run_stats(snapshot.get("stats", {})):
+		_snapshot_invalid()
+		return false
+
+	# Recalcula los valores derivados antes de repintar la interfaz.
+	StatsManager.invalidate_stat_cache()
+	_refresh_streak_multiplier()
+	emit_signal("streak_changed", current_streak, get_streak_multiplier())
+	emit_signal("run_tool_equipped", run_equipped_tool)
+	emit_signal("money_changed", run_money)
+	emit_signal("order_progress_changed", order_progress, order_target)
+	emit_signal("energy_changed", current_energy, StatsManager.get_final_max_energy())
+	emit_signal("round_time_changed", round_time_left)
+	return true
+
+func _snapshot_invalid() -> void:
+	SaveManager.clear_active_run()
+
+# Sale de una partida ACTIVA hacia el menú SIN terminarla: no cuenta como
+# derrota (no se registra run_ended ni se tocan las variables de la run, que
+# siguen vivas en memoria para poder continuarlas después).
+func abandon_run_to_menu() -> void:
+	current_state = GameState.MENU
+	is_round_active = false
+
+func get_available_recipe_ids() -> Array[String]:
 	var available: Array[String] = []
-	for fruit_id in run_unlocked_fruits:
-		available.append(str(fruit_id))
+	for recipe_id in run_unlocked_recipes:
+		available.append(str(recipe_id))
 	return available

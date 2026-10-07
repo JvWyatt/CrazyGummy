@@ -1,0 +1,64 @@
+[gd_scene format=3 uid="uid://d1c5n87m27p3r"]
+
+[ext_resource type="Script" uid="uid://dibfks7ykdyhl" path="res://scripts/game/GummyBlock.gd" id="1_f1"]
+[ext_resource type="Script" uid="uid://dkrtrhbycmjxw" path="res://scripts/game/BlockSpriteFallback.gd" id="2_v2"]
+[ext_resource type="Script" uid="uid://dkf4f2yv2qrbl" path="res://scripts/game/Ballistic.gd" id="3_bal"]
+[ext_resource type="Theme" path="res://themes/ui01_theme.tres" id="4_theme"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1"]
+radius = 40.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.12, 0.12, 0.16, 0.8)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill"]
+bg_color = Color(0.2, 0.85, 0.35, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[node name="GummyBlock" type="Area2D"]
+z_index = 5
+scale = Vector2(1.5, 1.5)
+collision_mask = 0
+script = ExtResource("1_f1")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_1")
+
+[node name="Visual" type="Sprite2D" parent="."]
+visible = false
+script = ExtResource("2_v2")
+
+[node name="GoldenRing" type="Sprite2D" parent="Visual"]
+visible = false
+
+[node name="HealthBar" type="ProgressBar" parent="."]
+offset_left = -40.0
+offset_top = -60.0
+offset_right = 40.0
+offset_bottom = -52.0
+theme = ExtResource("4_theme")
+theme_type_variation = &"HardnessBar"
+max_value = 10.0
+value = 10.0
+show_percentage = false
+
+[node name="NameLabel" type="Label" parent="."]
+offset_left = -80.0
+offset_top = -85.0
+offset_right = 80.0
+offset_bottom = -60.0
+theme = ExtResource("4_theme")
+theme_type_variation = &"Body"
+text = "🧊 Cubo Gummy Clásico"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Ballistic" type="Node" parent="."]
+script = ExtResource("3_bal")

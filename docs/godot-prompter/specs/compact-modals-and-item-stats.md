@@ -1,5 +1,8 @@
 # Modales compactos, tooltips y estadísticas globales
 
+> Especificación anterior a la migración interna. La arquitectura y las rutas
+> actuales están en [la guía del proyecto](../../INFORME_GLOBAL.md).
+
 ## Información de comodines
 
 Hover y toque usan la misma escena `scenes/ui/components/CardTooltip.tscn`:

@@ -15,6 +15,11 @@ var _safe_insets: Vector4 = Vector4.ZERO
 var _horizontal_offsets: Vector2
 
 func _ready() -> void:
+	var surface := Control.new()
+	surface.name = "GummySurface"
+	surface.set_script(preload("res://scripts/ui/GummySurface.gd"))
+	surface.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(surface)
 	_horizontal_offsets = Vector2(offset_left, offset_right)
 	anchor_top = 0.5
 	anchor_bottom = 0.5
@@ -75,7 +80,7 @@ func _fit() -> void:
 func _natural_height(control: Control) -> float:
 	var children: Array[Control] = []
 	for child in control.get_children():
-		if child is Control and child.visible and not child.is_queued_for_deletion():
+		if child is Control and child.name != "GummySurface" and child.visible and not child.is_queued_for_deletion():
 			children.append(child)
 	var native_height: float = control.get_combined_minimum_size().y
 	if children.is_empty():

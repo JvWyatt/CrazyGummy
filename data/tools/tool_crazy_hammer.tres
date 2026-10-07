@@ -1,0 +1,13 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/ToolData.gd" id="1_tool"]
+
+[resource]
+script = ExtResource("1_tool")
+id = "tool_crazy_hammer"
+name = "Crazy Hammer"
+description = "La herramienta definitiva para procesar gelatina."
+damage = 130.0
+unlock_order = 10
+price = 83703658
+icon = "🪚"

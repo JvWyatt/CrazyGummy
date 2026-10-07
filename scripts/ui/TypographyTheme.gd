@@ -39,6 +39,7 @@ func refresh_typography() -> void:
 	_updating = true
 	var was_blocked: bool = is_blocking_signals()
 	set_block_signals(true)
+	preload("res://scripts/ui/GummyDesignSystem.gd").apply(self)
 	var title_font := title.make_font(emoji_fallback)
 	var subtitle_font := subtitle.make_font(emoji_fallback)
 	var body_font := body.make_font(emoji_fallback)
@@ -53,17 +54,29 @@ func refresh_typography() -> void:
 	for variant in ["Title", "TitleLabel"]:
 		set_type_variation(variant, "Label")
 		_apply_style(variant, title, title_font)
+	set_type_variation("PremiumTitle", "Label")
+	_apply_style("PremiumTitle", title, title_font, false)
+	set_type_variation("BonusValue", "Label")
+	_apply_style("BonusValue", subtitle, subtitle_font, false)
 	for variant in ["Subtitle", "SubtitleLabel", "CardTitle", "ValueLabel", "JokerTitle"]:
 		set_type_variation(variant, "Label")
 		_apply_style(variant, subtitle, subtitle_font)
 	for variant in ["Body", "CaptionLabel", "JokerDescription"]:
 		set_type_variation(variant, "Label")
 		_apply_style(variant, body, body_font)
+	# Nombres sobre el arte: texto blanco con contorno negro, sin placa opaca.
+	for variant in ["CollectionNameTitle", "CollectionNameBody"]:
+		var profile: TypographyStyle = subtitle if variant == "CollectionNameTitle" else body
+		set_type_variation(variant, "Label")
+		_apply_style(variant, profile, subtitle_font if variant == "CollectionNameTitle" else body_font)
+		set_color("font_color", variant, Color.WHITE)
+		set_color("font_outline_color", variant, Color(0.0, 0.0, 0.0, 1.0))
+		set_constant("outline_size", variant, maxi(profile.outline_size, 4))
 	# Los emojis son arte, pero usan la misma fuente/fallback global de Body.
 	set_type_variation("IconLabel", "Label")
 	_apply_style("IconLabel", body, body_font)
 	set_font_size("font_size", "IconLabel", get_constant("icon_size", "TypographyMetrics") if has_constant("icon_size", "TypographyMetrics") else 32)
-	for variant in ["PrimaryButton", "DangerButton"]:
+	for variant in ["PrimaryButton", "DangerButton", "PremiumButton"]:
 		set_type_variation(variant, "Button")
 		_apply_style(variant, body, body_font, false)
 	# Contraste y estados de botones siguen centralizados en el Theme.

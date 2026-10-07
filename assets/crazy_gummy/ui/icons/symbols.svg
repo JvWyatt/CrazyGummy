@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="768" height="64" viewBox="0 0 768 64">
+<defs><linearGradient id="gel" x2=".3" y2="1"><stop stop-color="#f0fff9"/><stop offset=".5" stop-color="#8aead6"/><stop offset="1" stop-color="#439b99"/></linearGradient></defs>
+<g fill="url(#gel)" stroke="#e7fff7" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+<!-- Reputación, progreso, logro, comodín, ajustes, datos -->
+<path d="m32 8 7 15 17 2-12 12 3 17-15-8-15 8 3-17L8 25l17-2Z"/>
+<g transform="translate(64)"><rect x="13" y="11" width="38" height="44" rx="8"/><path d="M23 40V29m9 11V22m9 18V16" fill="none" stroke="#305263" stroke-width="4"/><path d="M23 47h20" fill="none"/></g>
+<g transform="translate(128)"><path d="M21 12h22v18q0 13-11 13T21 30ZM21 18H10v8q0 10 13 10m20-18h11v8q0 10-13 10M32 43v9m-12 2h24"/><path d="m32 18 3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1Z" fill="#305263" stroke="none"/></g>
+<g transform="translate(192)"><rect x="14" y="9" width="36" height="47" rx="8"/><path d="m32 19 10 13-10 13-10-13Z" fill="#536086"/><path d="M20 16h3m18 33h3" fill="none"/></g>
+<g transform="translate(256)"><path d="m25 10 14 0 2 7 7 4 7-1 6 12-6 5-1 7 3 6-11 8-6-4-8 0-6 4-11-8 3-6-1-7-6-5 6-12 7 1 7-4Z" transform="translate(-2 -3) scale(.98)"/><circle cx="32" cy="31" r="9" fill="#305263"/></g>
+<g transform="translate(320)"><rect x="11" y="10" width="42" height="44" rx="10"/><path d="M20 43V31m12 12V20m12 23V27" stroke="#305263" stroke-width="5" fill="none"/></g>
+<!-- Potencia, resistencia, ritmo, receta, dinero, candado -->
+<g transform="translate(384)"><path d="M22 9h23l-8 17h15L24 56l6-24H13Z"/><path d="m27 16-6 10" fill="none"/></g>
+<g transform="translate(448)"><path d="M32 8 52 17v17Q49 48 32 57 15 48 12 34V17Z"/><path d="m23 32 7 7 13-16" stroke="#305263" stroke-width="4" fill="none"/></g>
+<g transform="translate(512)"><path d="m27 11 20 11v23L27 55 8 44V22Z"/><path d="m8 22 19 11 20-11M27 33v22" fill="none" stroke="#467b83"/><path d="M51 15h9m-8 15h8m-8 15h8" fill="none" stroke-width="3"/></g>
+<g transform="translate(576)"><rect x="9" y="12" width="46" height="42" rx="12"/><path d="M23 23a6 6 0 1 0 0 12h18a6 6 0 1 0 0-12Z" fill="#305263"/><path d="M19 44h26" fill="none"/></g>
+<g transform="translate(640)"><rect x="8" y="16" width="48" height="33" rx="10"/><circle cx="32" cy="32" r="10" fill="#305263"/><path d="M32 25v14m-4-3h8m-8-8h8" fill="none" stroke-width="2"/></g>
+<g transform="translate(704)"><rect x="14" y="28" width="36" height="27" rx="9"/><path d="M21 28V20a11 11 0 0 1 22 0v8" fill="none" stroke-width="5"/><circle cx="32" cy="39" r="4" fill="#305263" stroke="none"/><path d="M32 40v6" stroke="#305263" fill="none"/></g>
+</g></svg>

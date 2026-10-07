@@ -1,20 +1,23 @@
-# Crazy Fruit - Agent Instructions
+# Crazy Gummy - Agent Instructions
 
-Incremental 2D fruit cutting mobile game built with Godot 4.5 (GDScript).
+Juego móvil incremental de procesar cubos de gelatina y producir gomitas, en Godot 4.x (GDScript).
+Leer `docs/INFORME_GLOBAL.md` antes de trabajar: informe global único con arquitectura,
+terminología oficial, pantallas, balance, sistema visual de cartas, referencias históricas
+y la sección «Migración desde Crazy Fruit».
 
 ## Project Overview
 
-- **Engine:** Godot 4.5, GL Compatibility renderer
+- **Engine:** Godot 4.x (project.godot declara 4.7), GL Compatibility renderer
 - **Language:** GDScript
 - **Platform:** Mobile-first (Android), 720x1280 portrait
-- **Genre:** Incremental / idle with Fruit Ninja-style cutting mechanics
+- **Genre:** Incremental por negocios/días con golpes mediante trazos
 
 ## Architecture
 
 - **7 autoloads:** SaveManager, StatsManager, SoundManager, GameManager, UiTheme, SettingsManager, AchievementManager
 - **Split layout:** `scripts/` and `scenes/` separated into `game/`, `ui/`, `models/`, `autoload/` subdirectories
-- **Data layer:** Custom Resource-based models (FruitData, FruitDatabase, CardDatabase)
-- **State machine:** Enum-based GameManager.GameState controls flow between MENU, PLAYING, CARD_SELECT, UPGRADES, STATS, RESULTS
+- **Data layer:** RecipeData, RecipeDatabase, ToolData, CardDatabase; catálogo en data/recipes/ y data/tools/
+- **State machine:** GameManager.GameState + is_round_active + visibilidad controlada por Main; ver enum real y navegación en la guía
 
 ## Conventions
 
@@ -22,6 +25,10 @@ Incremental 2D fruit cutting mobile game built with Godot 4.5 (GDScript).
 - Comments use Spanish with English code identifiers
 - Signals follow `snake_changed` / `snake_event` patterns
 - Autoloads access each other directly (e.g. `StatsManager.get_final_damage()`)
+- Nombres visibles: Potencia, Dureza (cubo), Resistencia (jugador), Ritmo (cubos/s), Recetas y Gomitas.
+- Arquitectura activa: GummyBlock, BlockSpawner, Projectile3D/Projectile3DWorld, recetas y herramientas con IDs canónicos.
+- Guardado versionado: crazy_gummy_save.json (v2). Los aliases anteriores están aislados en scripts/models/SaveMigration.gd; no reintroducirlos en lógica activa.
+- Conservar balance, IDs canónicos, señales, UID y referencias; cambios persistentes futuros requieren migración compatible. Ver sección «Migración desde Crazy Fruit» de `docs/INFORME_GLOBAL.md`.
 
 ## GodotPrompter
 

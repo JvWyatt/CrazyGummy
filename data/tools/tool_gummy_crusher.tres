@@ -1,0 +1,13 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/ToolData.gd" id="1_tool"]
+
+[resource]
+script = ExtResource("1_tool")
+id = "tool_gummy_crusher"
+name = "Gummy Crusher"
+description = "Precisión y potencia de nivel superior."
+damage = 95.0
+unlock_order = 9
+price = 15218847
+icon = "⚔️"

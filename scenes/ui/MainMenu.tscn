@@ -10,8 +10,8 @@
 [ext_resource type="Texture2D" uid="uid://dkcptt6wrtxbw" path="res://assets/ui/icons/Joker.png" id="9_ff4wq"]
 [ext_resource type="Texture2D" uid="uid://cdpail6lhujn8" path="res://assets/ui/icons/settings.png" id="10_nqw28"]
 [ext_resource type="Texture2D" uid="uid://bay06q8cb31ci" path="res://assets/ui/icons/info.png" id="11_7uy2f"]
-[ext_resource type="Texture2D" uid="uid://ts4equqnr1im" path="res://assets/ui/backgrounds/menu_bg.png" id="tex_bg"]
-[ext_resource type="Texture2D" uid="uid://bnf8gub0jg74" path="res://assets/ui/backgrounds/logo.png" id="tex_logo"]
+[ext_resource type="Texture2D" path="res://assets/crazy_gummy/ui/backgrounds/menu.svg" id="tex_bg"]
+[ext_resource type="Texture2D" path="res://assets/crazy_gummy/icon.png" id="tex_logo"]
 [ext_resource type="Script" path="res://scripts/ui/ContentSizedModal.gd" id="fit"]
 
 [node name="MainMenu" type="Control" unique_id=78427337]
@@ -81,19 +81,26 @@ stretch_mode = 5
 [node name="TitleLabel" type="Label" parent="CenterVBox/TitleVBox" unique_id=1962924208]
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
-text = "Crazy Fruit"
+text = "Crazy Gummy"
 horizontal_alignment = 1
 
 [node name="GoalLabel" type="Label" parent="CenterVBox/TitleVBox" unique_id=1980242948]
 layout_mode = 2
 theme_type_variation = &"SubtitleLabel"
-text = "🎯 100 días, ¿eso está pelado?"
+text = "Rompe cubos y revela gomitas."
 horizontal_alignment = 1
 autowrap_mode = 3
 
 [node name="ButtonsVBox" type="VBoxContainer" parent="CenterVBox" unique_id=632926681]
 layout_mode = 2
 theme_override_constants/separation = 18
+
+[node name="ContinueButton" type="Button" parent="CenterVBox/ButtonsVBox"]
+visible = false
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_type_variation = &"PrimaryButton"
+text = "▶ CONTINUAR"
 
 [node name="PlayButton" type="Button" parent="CenterVBox/ButtonsVBox" unique_id=1658374002]
 custom_minimum_size = Vector2(0, 88)
@@ -204,4 +211,7 @@ layout_mode = 2
 text = "← VOLVER"
 
 [node name="ResetConfirmDialog" parent="SettingsPanel" unique_id=1353792082 instance=ExtResource("3_cd")]
+layout_mode = 1
+
+[node name="NewRunConfirmDialog" parent="." unique_id=353910701 instance=ExtResource("3_cd")]
 layout_mode = 1

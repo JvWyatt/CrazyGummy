@@ -6,6 +6,6 @@
 script = ExtResource("1_prestige")
 id = "expert_hand"
 name = "Experiencia"
-desc = "+20% Resistencia Máxima"
+desc = "+10% Resistencia Máxima"
 cost = 3
 icon = "🧤"

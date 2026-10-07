@@ -52,16 +52,16 @@ func _run() -> void:
 	main.main_menu.start_game_requested.emit()
 	game.order_goal_reached.connect(_on_goal_reached)
 
-	var fruit := FruitData.new()
-	fruit.id = "test_fruit"
+	var recipe := RecipeData.new()
+	recipe.id = "test_recipe"
 
-	# --- Día 1 (cuota $0): el bonus arranca con la primera fruta --------------
+	# --- Día 1 (cuota $0): el bonus arranca con la primera cubo --------------
 	_reset_events()
 	_check(not game.daily_goal_reached, "El día empieza con la meta pendiente")
 	_check(game.get_order_bonus() == 0.0, "Sin cuota cumplida no hay bonus")
 
-	var reward: float = game.register_fruit_cut(fruit, 5.0, false)
-	_check(game.daily_goal_reached, "Día 1: la primera fruta cumple la cuota ($0)")
+	var reward: float = game.register_gummy_produced(recipe, 5.0, false)
+	_check(game.daily_goal_reached, "Día 1: la primera gomita cumple la cuota ($0)")
 	_check(goal_events == 1, "Día 1: se avisa UNA vez (emitidos %d)" % goal_events)
 	_check(is_equal_approx(goal_bonus, reward), "Día 1: el bonus es la ganancia extra (%f vs %f)" % [goal_bonus, reward])
 	_check(is_equal_approx(game.get_order_bonus(), reward), "get_order_bonus() coincide con el total")
@@ -81,7 +81,7 @@ func _run() -> void:
 		var particles := golden[0] as CPUParticles2D
 		_check(not particles.one_shot and particles.emitting, "La lluvia sigue activa durante la fase BONUS")
 		_check(celebration.z_index > main.get_node("Background").z_index, "La lluvia queda delante del fondo oscuro")
-		_check(celebration.z_index < main.get_node("GameWorld").z_index and celebration.z_index < main.get_node("Fruit3DLayer").z_index, "La lluvia queda detrás del gameplay 2D y 3D")
+		_check(celebration.z_index < main.get_node("GameWorld").z_index and celebration.z_index < main.get_node("Projectile3DLayer").z_index, "La lluvia queda detrás del gameplay 2D y 3D")
 		_check(particles.texture != null and particles.preprocess > 0.0, "La lluvia tiene confeti visible desde el inicio")
 		_check(particles.explosiveness <= 0.1, "El confeti dorado cae suave, sin explotar")
 		_check(particles.color_ramp != null and particles.color_ramp.colors[1].is_equal_approx(UiTheme.COLOR_ACCENT), "El confeti usa la rampa dorada del tema")
@@ -89,9 +89,9 @@ func _run() -> void:
 
 	# Seguir cortando acumula bonus sin volver a avisar.
 	var before: float = game.get_order_bonus()
-	game.register_fruit_cut(fruit, 3.0, false)
-	_check(goal_events == 1, "El aviso no se repite con más frutas (emitidos %d)" % goal_events)
-	_check(game.get_order_bonus() > before, "El bonus crece con cada fruta posterior")
+	game.register_gummy_produced(recipe, 3.0, false)
+	_check(goal_events == 1, "El aviso no se repite con más gomitas (emitidos %d)" % goal_events)
+	_check(game.get_order_bonus() > before, "El bonus crece con cada gomita posterior")
 	_check(celebration.get_child_count() == 1, "Seguir cortando no duplica la lluvia")
 	await create_timer(3.6).timeout
 	_check(is_instance_valid(golden[0]), "La lluvia permanece más allá de la vida de sus primeras partículas")
@@ -113,9 +113,9 @@ func _run() -> void:
 	var target: float = game.order_target
 	_check(target > 0.0, "El día 2 tiene cuota positiva")
 	var needed: float = target * 0.6
-	game.register_fruit_cut(fruit, needed, false)
+	game.register_gummy_produced(recipe, needed, false)
 	_check(goal_events == 0, "Todavía no se ha cumplido la cuota (%d)" % goal_events)
-	game.register_fruit_cut(fruit, needed, false)
+	game.register_gummy_produced(recipe, needed, false)
 	_check(game.daily_goal_reached, "Día 2: se cumple la cuota al superarla")
 	_check(goal_events == 1, "Día 2: un único aviso")
 	_check(is_equal_approx(goal_bonus, game.order_progress - target), "Día 2: el bonus es el exceso sobre la cuota")

@@ -175,7 +175,7 @@ horizontal_alignment = 1
 visible = false
 layout_mode = 2
 theme_type_variation = &"Subtitle"
-text = "x1.00"
+text = "x1.0"
 horizontal_alignment = 1
 
 [node name="MiddleSpace" type="Control" parent="TopContainer/VBox/Telemetry" unique_id=2067149053]
@@ -202,7 +202,7 @@ alignment = 1
 [node name="RateValue" type="Label" parent="TopContainer/VBox/Telemetry/RatePanel/VBox" unique_id=154738207]
 layout_mode = 2
 theme_type_variation = &"Body"
-text = "🍓   1 frutas/s"
+text = "🧊   1 cubos/s"
 horizontal_alignment = 1
 
 [node name="MultiplierValue" type="Label" parent="TopContainer/VBox/Telemetry/RatePanel/VBox" unique_id=1806806472]
@@ -223,22 +223,13 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 20.0
-offset_top = -132.0
+offset_top = -81.0
 offset_right = -20.0
 offset_bottom = -25.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_constants/separation = 10
 alignment = 1
-
-[node name="KnifeInfoLabel" type="Label" parent="BottomContainer" unique_id=409289421]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_type_variation = &"Body"
-text = "👊 Utensilio básico"
-horizontal_alignment = 1
-vertical_alignment = 1
-text_overrun_behavior = 3
 
 [node name="ButtonsHBox" type="HBoxContainer" parent="BottomContainer" unique_id=1636912296]
 layout_mode = 2
@@ -248,7 +239,7 @@ alignment = 1
 [node name="StatsButton" type="Button" parent="BottomContainer/ButtonsHBox" unique_id=934254969]
 custom_minimum_size = Vector2(148, 56)
 layout_mode = 2
-text = "📊 Stats"
+text = "📊 Datos"
 
 [node name="PauseButton" type="Button" parent="BottomContainer/ButtonsHBox" unique_id=1983840188]
 custom_minimum_size = Vector2(148, 56)
@@ -270,7 +261,7 @@ offset_bottom = 112.0
 grow_horizontal = 2
 mouse_filter = 2
 theme = ExtResource("1_4ed8p")
-theme_override_styles/panel = SubResource("SB_ach_toast")
+theme_type_variation = &"ToastPanel"
 
 [node name="HBox" type="HBoxContainer" parent="ToastLayer/AchToast" unique_id=362565018]
 layout_mode = 2
@@ -324,7 +315,7 @@ offset_bottom = 20.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_type_variation = &"Title"
-text = "¡YA PICASTE!"
+text = "¡DULCE RACHA!"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
@@ -386,6 +377,11 @@ text = "▶ CONTINUAR"
 custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 text = "⚙️ AJUSTES"
+
+[node name="SaveExitButton" type="Button" parent="PausePanel/Card/PauseVBox" unique_id=2159973340]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "💾 GUARDAR Y SALIR"
 
 [node name="PauseQuitButton" type="Button" parent="PausePanel/Card/PauseVBox" unique_id=11446429]
 custom_minimum_size = Vector2(0, 48)

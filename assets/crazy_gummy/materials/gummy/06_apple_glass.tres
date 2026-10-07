@@ -1,8 +1,0 @@
-[gd_resource type="ShaderMaterial" load_steps=2 format=3]
-[ext_resource type="Shader" path="res://assets/crazy_gummy/materials/gummy/gummy.gdshader" id="1"]
-[resource]
-resource_name = "06 · Verde manzana cristalino"
-shader = ExtResource("1")
-shader_parameter/primary_color = Color(0.3, 0.95, 0.12, 1)
-shader_parameter/opacity = 0.87
-shader_parameter/surface_roughness = 0.13

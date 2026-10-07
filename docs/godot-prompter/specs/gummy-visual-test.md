@@ -1,5 +1,9 @@
 # Prueba visual Crazy Gummy: fresa
 
+> **Documento histórico**, anterior a la migración de clases, rutas e IDs.
+> Para trabajar en el proyecto actual, leer
+> [INFORME_GLOBAL.md](../../INFORME_GLOBAL.md).
+
 > Actualización: la presentación se reutiliza ahora en las 20 frutas con un
 > catálogo visual por tier. Ver `assets/crazy_gummy/README.md` para materiales,
 > distribución y organización. Este documento conserva los detalles del flujo

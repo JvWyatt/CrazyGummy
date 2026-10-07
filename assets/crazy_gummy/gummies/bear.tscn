@@ -1,5 +1,5 @@
 [gd_scene load_steps=2 format=3]
 
-[ext_resource type="PackedScene" path="res://assets/models/gummy/osito.glb" id="1_model"]
+[ext_resource type="PackedScene" path="res://assets/crazy_gummy/gummies/gummy_01_bear.glb" id="1_model"]
 
 [node name="BearModel" instance=ExtResource("1_model")]

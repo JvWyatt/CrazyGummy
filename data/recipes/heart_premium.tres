@@ -1,0 +1,19 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/RecipeData.gd" id="1_recipe"]
+
+[resource]
+script = ExtResource("1_recipe")
+id = "heart_premium"
+display_name = "Corazón +"
+icon_emoji = "🍬"
+max_hp = 3397.0
+min_reward = 128
+max_reward = 256
+unlock_order = 9
+price = 1281
+base_color = Color(0.95, 0.55, 0.08, 1.0)
+inner_color = Color(1.0, 0.8, 0.2, 1.0)
+accent_color = Color(0.25, 0.65, 0.15, 1.0)
+radius = 25.0
+visual_family = "heart_premium"

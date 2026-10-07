@@ -1,5 +1,9 @@
 # Crazy Fruit — pasada UI/UX móvil
 
+> Especificación histórica. Para el rediseño de Crazy Gummy, partir de
+> [la guía del estado final](../../INFORME_GLOBAL.md), no de los
+> nombres, supuestos o propuestas de este documento anterior.
+
 ## Diagnóstico de la UI anterior
 
 La arquitectura existente era aprovechable: tema global, Containers, scroll
